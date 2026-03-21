@@ -1,5 +1,6 @@
 package com.nimbusdrive.controller;
 
+import com.nimbusdrive.dto.LoginRequest;
 import com.nimbusdrive.dto.RegisterRequest;
 import com.nimbusdrive.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,11 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public String register(@RequestBody RegisterRequest request){
         return authService.register(request);
+    }
+
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequest request) {
+        return authService.login(request);
     }
 
 }

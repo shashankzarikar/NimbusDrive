@@ -1,5 +1,6 @@
 package com.nimbusdrive.service;
 
+import com.nimbusdrive.dto.FileDownloadResult;
 import com.nimbusdrive.model.FileEntity;
 import com.nimbusdrive.model.User;
 import com.nimbusdrive.repository.FileRepository;
@@ -46,7 +47,7 @@ public class FileService {
         return fileRepository.findByUploadedBy(user);
     }
 
-    public byte[] downloadFile(Long fileId, String username) {
+    public FileEntity getFileEntity(Long fileId, String username) {
         FileEntity fileEntity = fileRepository.findById(fileId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
@@ -54,16 +55,22 @@ public class FileService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized access to file");
         }
 
-        return s3Service.downloadFile(fileEntity.getS3Key());
+        return fileEntity;
+    }
+
+    public FileDownloadResult downloadFile(Long fileId, String username) {
+        FileEntity fileEntity = getFileEntity(fileId, username);
+        byte[] bytes = s3Service.downloadFile(fileEntity.getS3Key());
+
+        return new FileDownloadResult(
+                fileEntity.getFileName(),
+                fileEntity.getFileType(),
+                bytes
+        );
     }
 
     public void deleteFile(Long fileId, String username) {
-        FileEntity fileEntity = fileRepository.findById(fileId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
-
-        if (!fileEntity.getUploadedBy().getUsername().equals(username)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized access to file");
-        }
+        FileEntity fileEntity = getFileEntity(fileId, username);
 
         s3Service.deleteFile(fileEntity.getS3Key());
         fileRepository.delete(fileEntity);

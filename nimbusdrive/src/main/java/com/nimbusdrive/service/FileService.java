@@ -1,6 +1,7 @@
 package com.nimbusdrive.service;
 
 import com.nimbusdrive.dto.FileDownloadResult;
+import com.nimbusdrive.dto.FileResponse;
 import com.nimbusdrive.model.FileEntity;
 import com.nimbusdrive.model.User;
 import com.nimbusdrive.repository.FileRepository;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class FileService {
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
 
-    public FileEntity uploadFile(MultipartFile file, String username) throws IOException {
+    public FileResponse uploadFile(MultipartFile file, String username) throws IOException {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
@@ -37,14 +39,17 @@ public class FileService {
         fileEntity.setUploadedBy(user);
         fileEntity.setUploadedAt(LocalDateTime.now());
 
-        return fileRepository.save(fileEntity);
+        return toFileResponse(fileRepository.save(fileEntity));
     }
 
-    public List<FileEntity> getUserFiles(String username) {
+    public List<FileResponse> getUserFiles(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        return fileRepository.findByUploadedBy(user);
+        return fileRepository.findByUploadedBy(user)
+                .stream()
+                .map(this::toFileResponse)
+                .collect(Collectors.toList());
     }
 
     public FileEntity getFileEntity(Long fileId, String username) {
@@ -74,6 +79,18 @@ public class FileService {
 
         s3Service.deleteFile(fileEntity.getS3Key());
         fileRepository.delete(fileEntity);
+    }
+
+    private FileResponse toFileResponse(FileEntity fileEntity) {
+        return FileResponse.builder()
+                .id(fileEntity.getId())
+                .fileName(fileEntity.getFileName())
+                .fileSize(fileEntity.getFileSize())
+                .fileType(fileEntity.getFileType())
+                .isPublic(fileEntity.getIsPublic())
+                .uploadedAt(fileEntity.getUploadedAt())
+                .uploadedBy(fileEntity.getUploadedBy().getUsername())
+                .build();
     }
 }
 

@@ -1,7 +1,7 @@
 package com.nimbusdrive.controller;
 
 import com.nimbusdrive.dto.FileDownloadResult;
-import com.nimbusdrive.model.FileEntity;
+import com.nimbusdrive.dto.FileResponse;
 import com.nimbusdrive.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -29,14 +29,14 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping("/upload")
-    public ResponseEntity<FileEntity> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<FileResponse> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
         String username = getLoggedInUsername();
-        FileEntity savedFile = fileService.uploadFile(file, username);
+        FileResponse savedFile = fileService.uploadFile(file, username);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedFile);
     }
 
-    @GetMapping("/")
-    public ResponseEntity<List<FileEntity>> getUserFiles() {
+    @GetMapping("")
+    public ResponseEntity<List<FileResponse>> getUserFiles() {
         String username = getLoggedInUsername();
         return ResponseEntity.ok(fileService.getUserFiles(username));
     }

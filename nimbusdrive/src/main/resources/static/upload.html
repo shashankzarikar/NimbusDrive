@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>NimbusDrive – Upload</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Google Font: Sora -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            /* Color palette (60-30-10) */
+            --color-bg: #f8fafc;          /* dominant 60% */
+            --color-navy: #1a2b4a;        /* secondary 30% */
+            --color-accent: #2563eb;      /* accent 10% */
+
+            /* Supporting colors */
+            --color-border: #d4dbe7;
+            --color-text-muted: #64748b;
+            --color-error-bg: #fee2e2;
+            --color-error-text: #b91c1c;
+            --color-success-bg: #dcfce7;
+            --color-success-text: #166534;
+            --color-navbar-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-navy);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(90deg, #0f172a, #111827);
+            color: #e5edff;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.4);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            background: rgba(248, 250, 252, 0.06);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .navbar-logo-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #e5edff;
+        }
+
+        .navbar-title {
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+        }
+
+        .navbar-username {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background-color: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            color: #e5edff;
+        }
+
+        .navbar-logout-btn {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(248, 250, 252, 0.7);
+            background-color: transparent;
+            color: #e5edff;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .navbar-logout-btn:hover {
+            background-color: #f9fafb;
+            color: #0f172a;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.35);
+        }
+
+        .navbar-logout-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 8px rgba(15, 23, 42, 0.3);
+        }
+
+        /* Main content */
+        .content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 32px 16px 40px;
+        }
+
+        .upload-wrapper {
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .upload-card {
+            background-color: #ffffff;
+            border-radius: 18px;
+            padding: 24px 24px 20px;
+            box-shadow:
+                0 18px 50px rgba(15, 23, 42, 0.12),
+                0 0 0 1px rgba(148, 163, 184, 0.18);
+        }
+
+        .upload-header {
+            margin-bottom: 18px;
+        }
+
+        .upload-heading {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--color-navy);
+            margin-bottom: 4px;
+        }
+
+        .upload-subheading {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+        }
+
+        .upload-zone {
+            margin-top: 14px;
+            padding: 24px 16px;
+            border-radius: 16px;
+            border: 1.5px dashed rgba(148, 163, 184, 0.9);
+            background-color: #f9fbff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: center;
+        }
+
+        .upload-zone.hover {
+            background-color: #eef2ff;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35), 0 10px 22px rgba(15, 23, 42, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .upload-zone-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            background-color: rgba(37, 99, 235, 0.08);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-zone-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--color-accent);
+        }
+
+        .upload-zone-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--color-navy);
+        }
+
+        .upload-zone-subtitle {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
+        .upload-file-info {
+            margin-top: 4px;
+            font-size: 0.82rem;
+            color: var(--color-navy);
+        }
+
+        .upload-file-info span {
+            font-weight: 500;
+        }
+
+        .upload-actions {
+            margin-top: 20px;
+        }
+
+        .upload-button {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background-color: var(--color-accent);
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+        }
+
+        .upload-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 32px rgba(30, 64, 175, 0.45);
+            background-color: #1d4ed8;
+        }
+
+        .upload-button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 10px 18px rgba(37, 99, 235, 0.35);
+        }
+
+        .upload-button:disabled {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: 0 8px 18px rgba(148, 163, 184, 0.35);
+        }
+
+        .upload-button-spinner {
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            border: 2px solid rgba(239, 246, 255, 0.6);
+            border-top-color: #eff6ff;
+            border-right-color: #eff6ff;
+            border-bottom-color: rgba(191, 219, 254, 0.4);
+            border-left-color: rgba(191, 219, 254, 0.1);
+            animation: spin 0.65s linear infinite;
+        }
+
+        .upload-message {
+            margin-top: 14px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
+            display: none;
+        }
+
+        .upload-message.error {
+            background-color: var(--color-error-bg);
+            color: var(--color-error-text);
+            border-color: rgba(248, 113, 113, 0.8);
+        }
+
+        .upload-message.success {
+            background-color: var(--color-success-bg);
+            color: var(--color-success-text);
+            border-color: rgba(34, 197, 94, 0.8);
+        }
+
+        .upload-message.visible {
+            display: block;
+        }
+
+        .upload-back {
+            margin-top: 14px;
+            font-size: 0.85rem;
+        }
+
+        .upload-back a {
+            color: var(--color-accent);
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s ease, text-decoration-color 0.2s ease;
+            text-decoration-color: transparent;
+        }
+
+        .upload-back a:hover {
+            text-decoration: underline;
+            text-decoration-color: var(--color-accent);
+            color: #1d4ed8;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .content {
+                padding: 24px 12px 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="navbar">
+        <div class="navbar-left">
+            <div class="navbar-logo-icon" aria-hidden="true">
+                <!-- Cloud SVG icon -->
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                    <path d="M7.5 18.5h9.25A4.25 4.25 0 0 0 21 14.25C21 11.9 19.2 10 16.9 10h-.07A5.25 5.25 0 0 0 6.6 9.26 3.75 3.75 0 0 0 7.5 18.5zm0 1.5A5.25 5.25 0 0 1 6 9.13 6.76 6.76 0 0 1 12.22 4 6.74 6.74 0 0 1 18.7 8.7C20.87 9 22.5 10.87 22.5 13.13A5.75 5.75 0 0 1 16.75 18.9H7.5z"></path>
+                </svg>
+            </div>
+            <span class="navbar-title">NimbusDrive</span>
+        </div>
+        <div class="navbar-right">
+            <div id="navbar-username" class="navbar-username"></div>
+            <button id="logout-btn" class="navbar-logout-btn" type="button">Logout</button>
+        </div>
+    </header>
+
+    <main class="content">
+        <div class="upload-wrapper">
+            <section class="upload-card" aria-label="File upload">
+                <div class="upload-header">
+                    <h1 class="upload-heading">Upload a File</h1>
+                    <p class="upload-subheading">Your file will be stored securely on AWS S3.</p>
+                </div>
+
+                <div id="upload-zone" class="upload-zone">
+                    <div class="upload-zone-icon" aria-hidden="true">
+                        <!-- Cloud upload SVG icon -->
+                        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                            <path d="M12 3.5a5.25 5.25 0 0 0-5.17 4.29A3.75 3.75 0 0 0 7.5 18.5H16a4.5 4.5 0 0 0 .68-8.95A5.25 5.25 0 0 0 12 3.5zm0 1.5a3.75 3.75 0 0 1 3.72 3.16l.13.78.79.06A3 3 0 0 1 16 17H7.5a2.25 2.25 0 0 1-.23-4.49l.78-.08.13-.77A3.75 3.75 0 0 1 12 5z"></path>
+                            <path d="M12 11.25a.75.75 0 0 0-.75.75v4.19l-1.72-1.72a.75.75 0 0 0-1.06 1.06l3.25 3.25a.75.75 0 0 0 1.06 0l3.25-3.25a.75.75 0 0 0-1.06-1.06L12.75 16.2V12a.75.75 0 0 0-.75-.75z"></path>
+                        </svg>
+                    </div>
+                    <div class="upload-zone-title">Drag &amp; drop your file here</div>
+                    <div class="upload-zone-subtitle">or click to browse</div>
+                    <div id="upload-file-info" class="upload-file-info" style="display: none;"></div>
+                </div>
+
+                <input id="file-input" type="file" style="display: none;" />
+
+                <div class="upload-actions">
+                    <button id="upload-button" class="upload-button" type="button" disabled>
+                        <span id="upload-button-text">Upload File</span>
+                    </button>
+                </div>
+
+                <div id="upload-message" class="upload-message" role="alert"></div>
+
+                <div class="upload-back">
+                    <a href="dashboard.html">&larr; Back to Dashboard</a>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<script>
+    (function () {
+        const token = localStorage.getItem("token");
+        const storedUsername = localStorage.getItem("username");
+
+        if (!token) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const navbarUsernameEl = document.getElementById("navbar-username");
+        const logoutBtn = document.getElementById("logout-btn");
+        const uploadZone = document.getElementById("upload-zone");
+        const fileInput = document.getElementById("file-input");
+        const uploadButton = document.getElementById("upload-button");
+        const uploadButtonText = document.getElementById("upload-button-text");
+        const uploadMessage = document.getElementById("upload-message");
+        const uploadFileInfo = document.getElementById("upload-file-info");
+
+        let selectedFile = null;
+
+        navbarUsernameEl.textContent = storedUsername || "User";
+
+        logoutBtn.addEventListener("click", function () {
+            try {
+                localStorage.removeItem("token");
+                localStorage.removeItem("username");
+            } catch (e) {
+                // ignore
+            }
+            window.location.href = "login.html";
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return "0 B";
+            const kb = bytes / 1024;
+            if (kb < 1024) {
+                return kb.toFixed(0) + " KB";
+            }
+            const mb = kb / 1024;
+            return mb.toFixed(1) + " MB";
+        }
+
+        function showMessage(message, type) {
+            uploadMessage.textContent = message;
+            uploadMessage.classList.remove("error", "success", "visible");
+            if (type === "error") {
+                uploadMessage.classList.add("error", "visible");
+            } else if (type === "success") {
+                uploadMessage.classList.add("success", "visible");
+            }
+        }
+
+        function clearMessage() {
+            uploadMessage.textContent = "";
+            uploadMessage.classList.remove("error", "success", "visible");
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                uploadButton.disabled = true;
+                uploadButtonText.textContent = "Uploading...";
+                if (!uploadButton.querySelector(".upload-button-spinner")) {
+                    const spinner = document.createElement("span");
+                    spinner.className = "upload-button-spinner";
+                    uploadButton.appendChild(spinner);
+                }
+            } else {
+                uploadButton.disabled = !selectedFile;
+                uploadButtonText.textContent = "Upload File";
+                const spinner = uploadButton.querySelector(".upload-button-spinner");
+                if (spinner) {
+                    spinner.remove();
+                }
+            }
+        }
+
+        function updateSelectedFile(file) {
+            selectedFile = file || null;
+            clearMessage();
+            if (selectedFile) {
+                const infoText = selectedFile.name + " (" + formatFileSize(selectedFile.size) + ")";
+                uploadFileInfo.textContent = infoText;
+                uploadFileInfo.style.display = "block";
+                uploadButton.disabled = false;
+            } else {
+                uploadFileInfo.textContent = "";
+                uploadFileInfo.style.display = "none";
+                uploadButton.disabled = true;
+            }
+        }
+
+        uploadZone.addEventListener("click", function () {
+            fileInput.click();
+        });
+
+        uploadZone.addEventListener("dragover", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            uploadZone.classList.add("hover");
+        });
+
+        ["dragleave", "dragend"].forEach(function (evt) {
+            uploadZone.addEventListener(evt, function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                uploadZone.classList.remove("hover");
+            });
+        });
+
+        uploadZone.addEventListener("drop", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            uploadZone.classList.remove("hover");
+
+            const files = event.dataTransfer && event.dataTransfer.files;
+            if (files && files.length > 0) {
+                updateSelectedFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener("change", function (event) {
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                updateSelectedFile(files[0]);
+            }
+        });
+
+        uploadButton.addEventListener("click", async function () {
+            clearMessage();
+            if (!selectedFile) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            setLoading(true);
+
+            try {
+                const response = await fetch("http://localhost:8080/api/files/upload", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                    body: formData
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                if (!response.ok) {
+                    let errorText = "Upload failed. Please try again.";
+                    try {
+                        const data = await response.json();
+                        if (data && (data.message || data.error)) {
+                            errorText = data.message || data.error;
+                        }
+                    } catch (e) {
+                        try {
+                            errorText = await response.text() || errorText;
+                        } catch (e2) {
+                            // ignore
+                        }
+                    }
+                    showMessage(errorText, "error");
+                    setLoading(false);
+                    return;
+                }
+
+                const result = await response.json();
+
+                const fileName = result && result.fileName ? result.fileName : (selectedFile && selectedFile.name);
+                showMessage("File '" + fileName + "' uploaded successfully.", "success");
+
+                setTimeout(function () {
+                    window.location.href = "dashboard.html";
+                }, 2000);
+            } catch (error) {
+                showMessage("Network error while uploading your file. Please try again.", "error");
+                setLoading(false);
+            }
+        });
+    })();
+</script>
+</body>
+</html>

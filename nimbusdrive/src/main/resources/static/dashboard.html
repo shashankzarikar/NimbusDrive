@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>NimbusDrive – Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Google Font: Sora -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            /* Color palette (60-30-10) */
+            --color-bg: #f8fafc;          /* dominant 60% */
+            --color-navy: #1a2b4a;        /* secondary 30% */
+            --color-accent: #2563eb;      /* accent 10% */
+
+            /* Supporting colors */
+            --color-border: #d4dbe7;
+            --color-text-muted: #64748b;
+            --color-error-bg: #fee2e2;
+            --color-error-text: #b91c1c;
+            --color-success-bg: #dcfce7;
+            --color-success-text: #166534;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-navy);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: var(--color-navy);
+            color: #e5edff;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.4);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            background: rgba(248, 250, 252, 0.06);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .navbar-logo-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #e5edff;
+        }
+
+        .navbar-title {
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+        }
+
+        .navbar-username {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background-color: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            color: #e5edff;
+        }
+
+        .navbar-logout-btn {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: none;
+            background-color: var(--color-accent);
+            color: #f9fafb;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+        }
+
+        .navbar-logout-btn:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(30, 64, 175, 0.5);
+        }
+
+        .navbar-logout-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 14px rgba(30, 64, 175, 0.5);
+        }
+
+        /* Main content */
+        .content {
+            flex: 1;
+            padding: 24px 20px 32px;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .content-titles {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .content-title {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--color-navy);
+        }
+
+        .content-subtitle {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+        }
+
+        .content-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-link-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background-color: var(--color-accent);
+            color: #f9fafb;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.45);
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .upload-link-btn:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 24px rgba(30, 64, 175, 0.55);
+        }
+
+        .upload-link-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 8px 18px rgba(30, 64, 175, 0.5);
+        }
+
+        /* Messages and loading */
+        .status-message {
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .status-message.error {
+            color: var(--color-error-text);
+        }
+
+        .status-message.success {
+            color: var(--color-success-text);
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 2px solid rgba(148, 163, 184, 0.4);
+            border-top-color: var(--color-accent);
+            border-right-color: var(--color-accent);
+            animation: spin 0.7s linear infinite;
+            margin-right: 6px;
+        }
+
+        .loading-container {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            margin-top: 10px;
+        }
+
+        /* Files grid */
+        .files-grid {
+            margin-top: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+
+        .file-card {
+            background-color: #ffffff;
+            border-radius: 14px;
+            padding: 12px 12px 10px;
+            box-shadow:
+                0 12px 30px rgba(15, 23, 42, 0.08),
+                0 0 0 1px rgba(148, 163, 184, 0.16);
+            display: flex;
+            gap: 10px;
+        }
+
+        .file-icon {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #eff6ff;
+            color: var(--color-accent);
+            font-size: 0.9rem;
+        }
+
+        .file-icon.pdf {
+            background-color: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .file-icon.image {
+            background-color: #ecfdf3;
+            color: #15803d;
+        }
+
+        .file-icon.video {
+            background-color: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .file-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+        .file-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .file-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--color-navy);
+            word-break: break-all;
+        }
+
+        .file-meta {
+            font-size: 0.78rem;
+            color: var(--color-text-muted);
+        }
+
+        .file-meta span + span::before {
+            content: "•";
+            margin: 0 4px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .btn-small {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn-download {
+            background-color: var(--color-accent);
+            color: #f9fafb;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-download:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(30, 64, 175, 0.5);
+        }
+
+        .btn-download:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 14px rgba(30, 64, 175, 0.5);
+        }
+
+        .btn-delete {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .btn-delete:hover {
+            background-color: #fecaca;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(248, 113, 113, 0.4);
+        }
+
+        .btn-delete:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 16px rgba(248, 113, 113, 0.4);
+        }
+
+        /* Empty state */
+        .empty-state {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--color-text-muted);
+        }
+
+        .empty-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background-color: #e5edff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .empty-icon svg {
+            width: 34px;
+            height: 34px;
+            fill: var(--color-accent);
+        }
+
+        .empty-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--color-navy);
+        }
+
+        .empty-text {
+            font-size: 0.88rem;
+            color: var(--color-text-muted);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .content {
+                padding: 20px 12px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="navbar">
+        <div class="navbar-left">
+            <div class="navbar-logo-icon" aria-hidden="true">
+                <!-- Cloud SVG icon -->
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                    <path d="M7.5 18.5h9.25A4.25 4.25 0 0 0 21 14.25C21 11.9 19.2 10 16.9 10h-.07A5.25 5.25 0 0 0 6.6 9.26 3.75 3.75 0 0 0 7.5 18.5zm0 1.5A5.25 5.25 0 0 1 6 9.13 6.76 6.76 0 0 1 12.22 4 6.74 6.74 0 0 1 18.7 8.7C20.87 9 22.5 10.87 22.5 13.13A5.75 5.75 0 0 1 16.75 18.9H7.5z"></path>
+                </svg>
+            </div>
+            <span class="navbar-title">NimbusDrive</span>
+        </div>
+        <div class="navbar-right">
+            <div id="navbar-username" class="navbar-username"></div>
+            <button id="logout-btn" class="navbar-logout-btn" type="button">Logout</button>
+        </div>
+    </header>
+
+    <main class="content">
+        <div class="content-header">
+            <div class="content-titles">
+                <h1 class="content-title">My Files</h1>
+                <p id="file-count" class="content-subtitle">Loading files...</p>
+            </div>
+            <div class="content-actions">
+                <a href="upload.html" class="upload-link-btn">Upload File</a>
+            </div>
+        </div>
+
+        <div id="status-message" class="status-message" style="display: none;"></div>
+
+        <div id="loading" class="loading-container">
+            <div class="spinner" aria-hidden="true"></div>
+            <span>Fetching your files...</span>
+        </div>
+
+        <div id="files-grid" class="files-grid" style="display: none;"></div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                    <path d="M7.5 18.5h9.25A4.25 4.25 0 0 0 21 14.25C21 11.9 19.2 10 16.9 10h-.07A5.25 5.25 0 0 0 6.6 9.26 3.75 3.75 0 0 0 7.5 18.5zm0 1.5A5.25 5.25 0 0 1 6 9.13 6.76 6.76 0 0 1 12.22 4 6.74 6.74 0 0 1 18.7 8.7C20.87 9 22.5 10.87 22.5 13.13A5.75 5.75 0 0 1 16.75 18.9H7.5z"></path>
+                </svg>
+            </div>
+            <p class="empty-title">No files uploaded yet.</p>
+            <p class="empty-text">Upload your first file to get started!</p>
+        </div>
+    </main>
+</div>
+
+<script>
+    (function () {
+        const token = localStorage.getItem("token");
+        const username = localStorage.getItem("username");
+
+        if (!token) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const navbarUsernameEl = document.getElementById("navbar-username");
+        const logoutBtn = document.getElementById("logout-btn");
+        const fileCountEl = document.getElementById("file-count");
+        const statusMessageEl = document.getElementById("status-message");
+        const loadingEl = document.getElementById("loading");
+        const filesGridEl = document.getElementById("files-grid");
+        const emptyStateEl = document.getElementById("empty-state");
+
+        navbarUsernameEl.textContent = username || "User";
+
+        logoutBtn.addEventListener("click", function () {
+            try {
+                localStorage.removeItem("token");
+                localStorage.removeItem("username");
+            } catch (e) {
+                // ignore
+            }
+            window.location.href = "login.html";
+        });
+
+        function setStatusMessage(message, type) {
+            if (!message) {
+                statusMessageEl.style.display = "none";
+                statusMessageEl.textContent = "";
+                statusMessageEl.className = "status-message";
+                return;
+            }
+            statusMessageEl.textContent = message;
+            statusMessageEl.className = "status-message" + (type ? " " + type : "");
+            statusMessageEl.style.display = "block";
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return "0 B";
+            const kb = bytes / 1024;
+            if (kb < 1024) {
+                return kb.toFixed(0) + " KB";
+            }
+            const mb = kb / 1024;
+            return mb.toFixed(1) + " MB";
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "";
+            try {
+                const d = new Date(dateString);
+                if (isNaN(d.getTime())) return dateString;
+                return d.toLocaleString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        function getFileTypeCategory(fileType, fileName) {
+            const lowerName = (fileName || "").toLowerCase();
+            const lowerType = (fileType || "").toLowerCase();
+
+            if (lowerType.includes("pdf") || lowerName.endsWith(".pdf")) {
+                return "pdf";
+            }
+            if (lowerType.startsWith("image/") || /(\.png|\.jpg|\.jpeg|\.gif|\.webp|\.bmp)$/.test(lowerName)) {
+                return "image";
+            }
+            if (lowerType.startsWith("video/") || /(\.mp4|\.mov|\.avi|\.mkv|\.webm)$/.test(lowerName)) {
+                return "video";
+            }
+            return "other";
+        }
+
+        function createFileCard(file) {
+            const card = document.createElement("div");
+            card.className = "file-card";
+            card.dataset.fileId = file.id;
+
+            const iconCategory = getFileTypeCategory(file.fileType, file.fileName);
+
+            const icon = document.createElement("div");
+            icon.className = "file-icon" + (iconCategory !== "other" ? " " + iconCategory : "");
+            icon.textContent = iconCategory === "pdf" ? "PDF" : iconCategory === "image" ? "IMG" : iconCategory === "video" ? "VID" : "FILE";
+
+            const content = document.createElement("div");
+            content.className = "file-content";
+
+            const titleRow = document.createElement("div");
+            titleRow.className = "file-title-row";
+
+            const nameEl = document.createElement("div");
+            nameEl.className = "file-name";
+            nameEl.textContent = file.fileName;
+
+            titleRow.appendChild(nameEl);
+
+            const meta = document.createElement("div");
+            meta.className = "file-meta";
+
+            const sizeSpan = document.createElement("span");
+            sizeSpan.textContent = formatFileSize(file.fileSize || 0);
+
+            const dateSpan = document.createElement("span");
+            dateSpan.textContent = formatDate(file.uploadedAt);
+
+            meta.appendChild(sizeSpan);
+            meta.appendChild(dateSpan);
+
+            const actions = document.createElement("div");
+            actions.className = "file-actions";
+
+            const downloadBtn = document.createElement("button");
+            downloadBtn.className = "btn-small btn-download";
+            downloadBtn.type = "button";
+            downloadBtn.textContent = "Download";
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "btn-small btn-delete";
+            deleteBtn.type = "button";
+            deleteBtn.textContent = "Delete";
+
+            downloadBtn.addEventListener("click", function () {
+                handleDownload(file);
+            });
+
+            deleteBtn.addEventListener("click", function () {
+                handleDelete(file, card);
+            });
+
+            actions.appendChild(downloadBtn);
+            actions.appendChild(deleteBtn);
+
+            content.appendChild(titleRow);
+            content.appendChild(meta);
+            content.appendChild(actions);
+
+            card.appendChild(icon);
+            card.appendChild(content);
+
+            return card;
+        }
+
+        async function handleDownload(file) {
+            try {
+                const response = await fetch("http://localhost:8080/api/files/download/" + encodeURIComponent(file.id), {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                if (!response.ok) {
+                    setStatusMessage("Failed to download file. Please try again.", "error");
+                    return;
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = file.fileName || "download";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (e) {
+                setStatusMessage("Network error while downloading the file.", "error");
+            }
+        }
+
+        async function handleDelete(file, cardElement) {
+            try {
+                const response = await fetch("http://localhost:8080/api/files/" + encodeURIComponent(file.id), {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                if (response.status === 204) {
+                    cardElement.remove();
+                    updateFileCountAndEmptyState();
+                    setStatusMessage("File deleted successfully.", "success");
+                } else {
+                    setStatusMessage("Failed to delete file. Please try again.", "error");
+                }
+            } catch (e) {
+                setStatusMessage("Network error while deleting the file.", "error");
+            }
+        }
+
+        function updateFileCountAndEmptyState() {
+            const cards = filesGridEl.querySelectorAll(".file-card");
+            const count = cards.length;
+            if (count === 0) {
+                fileCountEl.textContent = "0 files stored";
+                filesGridEl.style.display = "none";
+                emptyStateEl.style.display = "flex";
+            } else {
+                fileCountEl.textContent = count + (count === 1 ? " file stored" : " files stored");
+                filesGridEl.style.display = "grid";
+                emptyStateEl.style.display = "none";
+            }
+        }
+
+        async function fetchFiles() {
+            try {
+                const response = await fetch("http://localhost:8080/api/files", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                if (!response.ok) {
+                    setStatusMessage("Unable to load files. Please try again later.", "error");
+                    loadingEl.style.display = "none";
+                    fileCountEl.textContent = "0 files stored";
+                    return;
+                }
+
+                const files = await response.json();
+
+                filesGridEl.innerHTML = "";
+
+                if (Array.isArray(files) && files.length > 0) {
+                    files.forEach(function (file) {
+                        const card = createFileCard(file);
+                        filesGridEl.appendChild(card);
+                    });
+                }
+
+                loadingEl.style.display = "none";
+                updateFileCountAndEmptyState();
+            } catch (e) {
+                loadingEl.style.display = "none";
+                setStatusMessage("Network error while loading files.", "error");
+                fileCountEl.textContent = "0 files stored";
+            }
+        }
+
+        fetchFiles();
+    })();
+</script>
+</body>
+</html>

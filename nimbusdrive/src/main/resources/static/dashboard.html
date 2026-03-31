@@ -625,7 +625,7 @@
 
         async function handleDownload(file) {
             try {
-                const response = await fetch("http://localhost:8080/api/files/download/" + encodeURIComponent(file.id), {
+                const response = await fetch("/api/files/download/" + encodeURIComponent(file.id), {
                     method: "GET",
                     headers: {
                         "Authorization": "Bearer " + token
@@ -658,7 +658,7 @@
 
         async function handleDelete(file, cardElement) {
             try {
-                const response = await fetch("http://localhost:8080/api/files/" + encodeURIComponent(file.id), {
+                const response = await fetch("/api/files/" + encodeURIComponent(file.id), {
                     method: "DELETE",
                     headers: {
                         "Authorization": "Bearer " + token
@@ -698,7 +698,7 @@
 
         async function fetchFiles() {
             try {
-                const response = await fetch("http://localhost:8080/api/files", {
+                const response = await fetch("/api/files", {
                     method: "GET",
                     headers: {
                         "Authorization": "Bearer " + token

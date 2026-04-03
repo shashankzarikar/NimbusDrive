@@ -400,6 +400,21 @@
             color: var(--color-text-muted);
         }
 
+        /* Pagination */
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .page-info {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            font-weight: 500;
+        }
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -466,6 +481,12 @@
             <p class="empty-title">No files uploaded yet.</p>
             <p class="empty-text">Upload your first file to get started!</p>
         </div>
+
+        <div id="pagination" class="pagination" style="display: none;">
+            <button id="prev-btn" class="btn-small btn-download" type="button">Previous</button>
+            <span id="page-info" class="page-info"></span>
+            <button id="next-btn" class="btn-small btn-download" type="button">Next</button>
+        </div>
     </main>
 </div>
 
@@ -486,6 +507,13 @@
         const loadingEl = document.getElementById("loading");
         const filesGridEl = document.getElementById("files-grid");
         const emptyStateEl = document.getElementById("empty-state");
+        const paginationEl = document.getElementById("pagination");
+        const prevBtnEl = document.getElementById("prev-btn");
+        const nextBtnEl = document.getElementById("next-btn");
+        const pageInfoEl = document.getElementById("page-info");
+
+        const pageSize = 9;
+        let currentPage = 0;
 
         navbarUsernameEl.textContent = username || "User";
 
@@ -672,7 +700,7 @@
 
                 if (response.status === 204) {
                     cardElement.remove();
-                    updateFileCountAndEmptyState();
+                    fetchFiles(currentPage);
                     setStatusMessage("File deleted successfully.", "success");
                 } else {
                     setStatusMessage("Failed to delete file. Please try again.", "error");
@@ -686,7 +714,7 @@
             const cards = filesGridEl.querySelectorAll(".file-card");
             const count = cards.length;
             if (count === 0) {
-                fileCountEl.textContent = "0 files stored";
+                fileCountEl.textContent = "0 total files";
                 filesGridEl.style.display = "none";
                 emptyStateEl.style.display = "flex";
             } else {
@@ -696,9 +724,22 @@
             }
         }
 
-        async function fetchFiles() {
+        prevBtnEl.addEventListener("click", function () {
+            if (currentPage > 0) {
+                currentPage = currentPage - 1;
+                fetchFiles(currentPage);
+            }
+        });
+
+        nextBtnEl.addEventListener("click", function () {
+            currentPage = currentPage + 1;
+            fetchFiles(currentPage);
+        });
+
+        async function fetchFiles(page) {
             try {
-                const response = await fetch("/api/files", {
+                const response = await fetch(`/api/files?page=${encodeURIComponent(page)}&size=${encodeURIComponent(pageSize)}`,
+                    {
                     method: "GET",
                     headers: {
                         "Authorization": "Bearer " + token
@@ -713,31 +754,65 @@
                 if (!response.ok) {
                     setStatusMessage("Unable to load files. Please try again later.", "error");
                     loadingEl.style.display = "none";
-                    fileCountEl.textContent = "0 files stored";
+                    fileCountEl.textContent = "0 total files";
                     return;
                 }
 
-                const files = await response.json();
+                const data = await response.json();
+
+                const files = (data && Array.isArray(data.files)) ? data.files : [];
+                const totalFiles = (data && typeof data.totalFiles === "number") ? data.totalFiles : files.length;
+                const totalPages = (data && typeof data.totalPages === "number") ? data.totalPages : 1;
+                const apiCurrentPage = (data && typeof data.currentPage === "number") ? data.currentPage : page;
+
+                currentPage = apiCurrentPage || 0;
 
                 filesGridEl.innerHTML = "";
 
-                if (Array.isArray(files) && files.length > 0) {
+                if (files.length > 0) {
                     files.forEach(function (file) {
                         const card = createFileCard(file);
                         filesGridEl.appendChild(card);
                     });
                 }
 
+                fileCountEl.textContent = `${totalFiles} total file${totalFiles === 1 ? "" : "s"}`;
+
+                pageInfoEl.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+
+                if (totalPages > 1) {
+                    paginationEl.style.display = "flex";
+                } else {
+                    paginationEl.style.display = "none";
+                }
+
+                prevBtnEl.disabled = currentPage === 0;
+                nextBtnEl.disabled = currentPage >= (totalPages - 1);
+
+                prevBtnEl.style.opacity = prevBtnEl.disabled ? "0.6" : "1";
+                nextBtnEl.style.opacity = nextBtnEl.disabled ? "0.6" : "1";
+                prevBtnEl.style.cursor = prevBtnEl.disabled ? "not-allowed" : "pointer";
+                nextBtnEl.style.cursor = nextBtnEl.disabled ? "not-allowed" : "pointer";
+
                 loadingEl.style.display = "none";
-                updateFileCountAndEmptyState();
+                const showEmpty = files.length === 0;
+                if (showEmpty) {
+                    filesGridEl.style.display = "none";
+                    emptyStateEl.style.display = "flex";
+                    // no files -> pagination not useful
+                    paginationEl.style.display = "none";
+                } else {
+                    filesGridEl.style.display = "grid";
+                    emptyStateEl.style.display = "none";
+                }
             } catch (e) {
                 loadingEl.style.display = "none";
                 setStatusMessage("Network error while loading files.", "error");
-                fileCountEl.textContent = "0 files stored";
+                fileCountEl.textContent = "0 total files";
             }
         }
 
-        fetchFiles();
+        fetchFiles(currentPage);
     })();
 </script>
 </body>

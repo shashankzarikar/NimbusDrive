@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -36,6 +37,16 @@ public class GlobalExceptionHandler {
         ApiResponse body = ApiResponse.builder()
                 .success(false)
                 .message(message)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
+        ApiResponse body = ApiResponse.builder()
+                .success(false)
+                .message("File size exceeds 10MB limit")
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);

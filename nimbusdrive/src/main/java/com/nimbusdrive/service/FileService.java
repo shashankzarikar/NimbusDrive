@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +27,32 @@ public class FileService {
     private final UserRepository userRepository;
 
     public FileResponse uploadFile(MultipartFile file, String username) throws IOException {
+        Set<String> allowedTypes = Set.of(
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.ms-excel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-powerpoint",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "text/plain",
+                "image/jpeg",
+                "image/png",
+                "image/gif",
+                "image/webp",
+                "application/zip",
+                "application/x-zip-compressed"
+        );
+
+        String contentType = file.getContentType();
+        if (contentType == null || !allowedTypes.contains(contentType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File type not allowed");
+        }
+
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File size exceeds 10MB limit");
+        }
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 

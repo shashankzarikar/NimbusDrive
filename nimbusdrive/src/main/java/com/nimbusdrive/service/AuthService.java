@@ -6,10 +6,10 @@ import com.nimbusdrive.model.User;
 import com.nimbusdrive.repository.UserRepository;
 import com.nimbusdrive.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 
@@ -26,12 +26,12 @@ public class AuthService {
     public String register(RegisterRequest request){
         //Step1 : check if username exists
         if(userRepository.findByUsername(request.getUsername()).isPresent()){
-            return "Username already taken !";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already taken!");
         }
 
         //Step 2 : check if email exists
         if(userRepository.findByEmail(request.getEmail()).isPresent()){
-            return "Email already registered !";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already registered!");
         }
 
         //Step 3 : Create new user object
@@ -59,14 +59,14 @@ public class AuthService {
                         .orElse(null));
 
         if(user == null) {
-            return "User not found!";
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials!");
         }
 
         // Step 2: Check password
         if(!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword())) {
-            return "Invalid password!";
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials!");
         }
 
         // Step 3: Generate and return token

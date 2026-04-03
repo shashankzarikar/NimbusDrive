@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/files")
@@ -27,6 +28,15 @@ import java.io.IOException;
 public class FileController {
 
     private final FileService fileService;
+
+    private static final Set<String> PREVIEWABLE_TYPES = Set.of(
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp",
+            "text/plain"
+    );
 
     @PostMapping("/upload")
     public ResponseEntity<FileResponse> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
@@ -54,6 +64,25 @@ public class FileController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(mediaType);
         headers.setContentDispositionFormData("attachment", result.getFileName());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(result.getBytes());
+    }
+
+    @GetMapping("/preview/{id}")
+    public ResponseEntity<byte[]> previewFile(@PathVariable Long id) {
+        String username = getLoggedInUsername();
+        FileDownloadResult result = fileService.downloadFile(id, username);
+
+        MediaType mediaType = (result.getContentType() != null && !result.getContentType().isBlank())
+                ? MediaType.parseMediaType(result.getContentType())
+                : MediaType.APPLICATION_OCTET_STREAM;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(mediaType);
+        boolean isPreviewable = result.getContentType() != null && PREVIEWABLE_TYPES.contains(result.getContentType());
+        headers.setContentDispositionFormData(isPreviewable ? "inline" : "attachment", result.getFileName());
 
         return ResponseEntity.ok()
                 .headers(headers)

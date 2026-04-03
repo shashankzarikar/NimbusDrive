@@ -1,6 +1,7 @@
 package com.nimbusdrive.controller;
 
 import com.nimbusdrive.dto.FileDownloadResult;
+import com.nimbusdrive.dto.FilePageResponse;
 import com.nimbusdrive.dto.FileResponse;
 import com.nimbusdrive.service.FileService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/files")
@@ -36,9 +36,11 @@ public class FileController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<FileResponse>> getUserFiles() {
+    public ResponseEntity<FilePageResponse> getUserFiles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
         String username = getLoggedInUsername();
-        return ResponseEntity.ok(fileService.getUserFiles(username));
+        return ResponseEntity.ok(fileService.getUserFiles(username, page, size));
     }
 
     @GetMapping("/download/{id}")

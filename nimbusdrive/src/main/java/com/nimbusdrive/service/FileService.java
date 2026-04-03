@@ -11,6 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import com.nimbusdrive.dto.FilePageResponse;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -69,14 +74,24 @@ public class FileService {
         return toFileResponse(fileRepository.save(fileEntity));
     }
 
-    public List<FileResponse> getUserFiles(String username) {
+    public FilePageResponse getUserFiles(String username, int page, int size) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        return fileRepository.findByUploadedBy(user)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("uploadedAt").descending());
+        Page<FileEntity> filePage = fileRepository.findByUploadedBy(user, pageable);
+
+        List<FileResponse> files = filePage.getContent()
                 .stream()
                 .map(this::toFileResponse)
                 .collect(Collectors.toList());
+
+        return FilePageResponse.builder()
+                .files(files)
+                .currentPage(filePage.getNumber())
+                .totalPages(filePage.getTotalPages())
+                .totalFiles(filePage.getTotalElements())
+                .build();
     }
 
     public FileEntity getFileEntity(Long fileId, String username) {

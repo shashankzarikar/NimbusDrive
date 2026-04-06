@@ -316,12 +316,6 @@
             margin: 0 4px;
         }
 
-        .file-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
         .btn-small {
             padding: 4px 10px;
             border-radius: 999px;
@@ -367,6 +361,84 @@
         .btn-delete:active {
             transform: translateY(0);
             box-shadow: 0 5px 16px rgba(248, 113, 113, 0.4);
+        }
+
+        .kebab-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-muted);
+            flex-shrink: 0;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .kebab-btn:hover {
+            background-color: #f1f5f9;
+            color: var(--color-navy);
+        }
+
+        .kebab-btn:active {
+            background-color: #e2e8f0;
+            color: var(--color-navy);
+        }
+
+        .dropdown-menu {
+            position: fixed;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(148, 163, 184, 0.2);
+            padding: 6px 0;
+            min-width: 160px;
+            z-index: 9998;
+            display: none;
+        }
+
+        .dropdown-menu.visible {
+            display: block;
+        }
+
+        .dropdown-item {
+            width: 100%;
+            padding: 13px 16px;
+            border: none;
+            background: transparent;
+            text-align: left;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-navy);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.15s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f1f5f9;
+        }
+
+        .dropdown-item:active {
+            background-color: #e2e8f0;
+        }
+
+        .dropdown-item-delete {
+            color: #b91c1c;
+        }
+
+        .dropdown-item-delete:hover {
+            background-color: #fef2f2;
+        }
+
+        .dropdown-item-delete:active {
+            background-color: #fee2e2;
         }
 
         /* Empty state */
@@ -520,6 +592,11 @@
         </div>
     </main>
 
+    <div id="dropdown-menu" class="dropdown-menu">
+        <button id="dropdown-download" class="dropdown-item" type="button">↓  Download</button>
+        <button id="dropdown-delete" class="dropdown-item dropdown-item-delete" type="button">🗑  Delete</button>
+    </div>
+
     <div id="toast" class="toast"></div>
 </div>
 
@@ -545,6 +622,9 @@
         const nextBtnEl = document.getElementById("next-btn");
         const pageInfoEl = document.getElementById("page-info");
         const toastEl = document.getElementById("toast");
+        const dropdownEl = document.getElementById("dropdown-menu");
+        const dropdownDownloadBtn = document.getElementById("dropdown-download");
+        const dropdownDeleteBtn = document.getElementById("dropdown-delete");
 
         const pageSize = 9;
         let currentPage = 0;
@@ -569,6 +649,56 @@
                 toastEl.classList.remove("visible");
             }, 3000);
         }
+
+        function showDropdown(file, event, cardElement) {
+            if (!dropdownEl) return;
+            if (event && typeof event.stopPropagation === "function") {
+                event.stopPropagation();
+            }
+
+            dropdownEl.classList.add("visible");
+            dropdownEl.style.left = (event ? event.clientX : 0) + "px";
+            dropdownEl.style.top = (event ? event.clientY : 0) + "px";
+
+            const rect = dropdownEl.getBoundingClientRect();
+            let left = rect.left;
+            let top = rect.top;
+
+            if (rect.right > window.innerWidth) {
+                left = Math.max(8, left - rect.width);
+            }
+            if (rect.bottom > window.innerHeight) {
+                top = Math.max(8, top - rect.height);
+            }
+
+            dropdownEl.style.left = left + "px";
+            dropdownEl.style.top = top + "px";
+
+            if (dropdownDownloadBtn) dropdownDownloadBtn.onclick = null;
+            if (dropdownDeleteBtn) dropdownDeleteBtn.onclick = null;
+
+            if (dropdownDownloadBtn) {
+                dropdownDownloadBtn.onclick = function () {
+                    handleDownload(file);
+                    dropdownEl.classList.remove("visible");
+                };
+            }
+
+            if (dropdownDeleteBtn) {
+                dropdownDeleteBtn.onclick = function () {
+                    handleDelete(file, cardElement);
+                    dropdownEl.classList.remove("visible");
+                };
+            }
+        }
+
+        document.addEventListener("click", function (event) {
+            if (!dropdownEl) return;
+            if (event && event.target && dropdownEl.contains(event.target)) {
+                return;
+            }
+            dropdownEl.classList.remove("visible");
+        });
 
         function setStatusMessage(message, type) {
             if (!message) {
@@ -651,6 +781,17 @@
 
             titleRow.appendChild(nameEl);
 
+            const kebabBtn = document.createElement("button");
+            kebabBtn.type = "button";
+            kebabBtn.className = "kebab-btn";
+            kebabBtn.textContent = "⋮";
+
+            kebabBtn.addEventListener("click", function (event) {
+                showDropdown(file, event, card);
+            });
+
+            titleRow.appendChild(kebabBtn);
+
             const meta = document.createElement("div");
             meta.className = "file-meta";
 
@@ -663,40 +804,16 @@
             meta.appendChild(sizeSpan);
             meta.appendChild(dateSpan);
 
-            const actions = document.createElement("div");
-            actions.className = "file-actions";
-
-            const downloadBtn = document.createElement("button");
-            downloadBtn.className = "btn-small btn-download";
-            downloadBtn.type = "button";
-            downloadBtn.textContent = "Download";
-
-            const deleteBtn = document.createElement("button");
-            deleteBtn.className = "btn-small btn-delete";
-            deleteBtn.type = "button";
-            deleteBtn.textContent = "Delete";
-
-            downloadBtn.addEventListener("click", function () {
-                handleDownload(file);
-            });
-
-            deleteBtn.addEventListener("click", function () {
-                handleDelete(file, card);
-            });
+            content.appendChild(titleRow);
+            content.appendChild(meta);
 
             card.addEventListener("click", function (event) {
-                if (event && (event.target === downloadBtn || event.target === deleteBtn)) {
+                if (event && event.target === kebabBtn) {
                     return;
                 }
                 handlePreview(file);
             });
 
-            actions.appendChild(downloadBtn);
-            actions.appendChild(deleteBtn);
-
-            content.appendChild(titleRow);
-            content.appendChild(meta);
-            content.appendChild(actions);
 
             card.appendChild(icon);
             card.appendChild(content);

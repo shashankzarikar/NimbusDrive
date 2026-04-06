@@ -245,6 +245,15 @@
                 0 0 0 1px rgba(148, 163, 184, 0.16);
             display: flex;
             gap: 10px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .file-card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 16px 36px rgba(15, 23, 42, 0.12),
+                0 0 0 1px rgba(148, 163, 184, 0.22);
         }
 
         .file-icon {
@@ -415,6 +424,28 @@
             font-weight: 500;
         }
 
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-navy);
+            color: #e5edff;
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .toast.visible {
+            opacity: 1;
+        }
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -488,6 +519,8 @@
             <button id="next-btn" class="btn-small btn-download" type="button">Next</button>
         </div>
     </main>
+
+    <div id="toast" class="toast"></div>
 </div>
 
 <script>
@@ -511,6 +544,7 @@
         const prevBtnEl = document.getElementById("prev-btn");
         const nextBtnEl = document.getElementById("next-btn");
         const pageInfoEl = document.getElementById("page-info");
+        const toastEl = document.getElementById("toast");
 
         const pageSize = 9;
         let currentPage = 0;
@@ -526,6 +560,15 @@
             }
             window.location.href = "login.html";
         });
+
+        function showToast(message) {
+            if (!toastEl) return;
+            toastEl.textContent = message || "";
+            toastEl.classList.add("visible");
+            window.setTimeout(function () {
+                toastEl.classList.remove("visible");
+            }, 3000);
+        }
 
         function setStatusMessage(message, type) {
             if (!message) {
@@ -576,6 +619,9 @@
             if (lowerType.startsWith("image/") || /(\.png|\.jpg|\.jpeg|\.gif|\.webp|\.bmp)$/.test(lowerName)) {
                 return "image";
             }
+            if (lowerType === "text/plain" || lowerName.endsWith(".txt")) {
+                return "text";
+            }
             if (lowerType.startsWith("video/") || /(\.mp4|\.mov|\.avi|\.mkv|\.webm)$/.test(lowerName)) {
                 return "video";
             }
@@ -591,7 +637,7 @@
 
             const icon = document.createElement("div");
             icon.className = "file-icon" + (iconCategory !== "other" ? " " + iconCategory : "");
-            icon.textContent = iconCategory === "pdf" ? "PDF" : iconCategory === "image" ? "IMG" : iconCategory === "video" ? "VID" : "FILE";
+            icon.textContent = iconCategory === "pdf" ? "PDF" : iconCategory === "image" ? "IMG" : iconCategory === "video" ? "VID" : iconCategory === "text" ? "TXT" : "FILE";
 
             const content = document.createElement("div");
             content.className = "file-content";
@@ -638,6 +684,13 @@
                 handleDelete(file, card);
             });
 
+            card.addEventListener("click", function (event) {
+                if (event && (event.target === downloadBtn || event.target === deleteBtn)) {
+                    return;
+                }
+                handlePreview(file);
+            });
+
             actions.appendChild(downloadBtn);
             actions.appendChild(deleteBtn);
 
@@ -681,6 +734,44 @@
                 window.URL.revokeObjectURL(url);
             } catch (e) {
                 setStatusMessage("Network error while downloading the file.", "error");
+            }
+        }
+
+        async function handlePreview(file) {
+            const category = getFileTypeCategory(file.fileType, file.fileName);
+
+            if (category !== "pdf" && category !== "image" && category !== "text") {
+                showToast("Preview not available — downloading file");
+                handleDownload(file);
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/files/preview/" + encodeURIComponent(file.id), {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                if (!response.ok) {
+                    setStatusMessage("Failed to preview file. Please try again.", "error");
+                    return;
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                window.open(url, "_blank");
+                window.setTimeout(function () {
+                    window.URL.revokeObjectURL(url);
+                }, 10000);
+            } catch (e) {
+                setStatusMessage("Network error while previewing the file.", "error");
             }
         }
 

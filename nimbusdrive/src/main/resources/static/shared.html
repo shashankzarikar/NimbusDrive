@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>NimbusDrive – Shared Files</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --color-bg: #f8fafc;
+            --color-navy: #1a2b4a;
+            --color-accent: #2563eb;
+            --color-border: #d4dbe7;
+            --color-text-muted: #64748b;
+            --color-error-text: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-navy);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar (match dashboard) */
+        .navbar {
+            background-color: var(--color-navy);
+            color: #e5edff;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.4);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            background: rgba(248, 250, 252, 0.06);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .navbar-logo-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #e5edff;
+        }
+
+        .navbar-title {
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+        }
+
+        .navbar-username {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background-color: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            color: #e5edff;
+        }
+
+        .navbar-shared-btn {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,0.4);
+            color: #e5edff;
+            background: transparent;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .navbar-logout-btn {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: none;
+            background-color: var(--color-accent);
+            color: #f9fafb;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+        }
+
+        .navbar-logout-btn:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(30, 64, 175, 0.5);
+        }
+
+        .navbar-logout-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 14px rgba(30, 64, 175, 0.5);
+        }
+
+        /* Main content */
+        .content {
+            flex: 1;
+            padding: 24px 20px 32px;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .content-titles {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .content-title {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--color-navy);
+        }
+
+        .content-subtitle {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+        }
+
+        .status-message {
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            color: var(--color-error-text);
+        }
+
+        /* Loading */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 2px solid rgba(148, 163, 184, 0.4);
+            border-top-color: var(--color-accent);
+            border-right-color: var(--color-accent);
+            animation: spin 0.7s linear infinite;
+            margin-right: 6px;
+        }
+
+        .loading-container {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            margin-top: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* List rows */
+        .shared-list {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .share-row {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 12px 30px rgba(15,23,42,0.08), 0 0 0 1px rgba(148,163,184,0.16);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .file-icon {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #eff6ff;
+            color: var(--color-accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .file-icon.pdf {
+            background-color: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .file-icon.image {
+            background-color: #ecfdf3;
+            color: #15803d;
+        }
+
+        .file-icon.video {
+            background-color: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .row-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: var(--color-navy);
+            word-break: break-all;
+        }
+
+        .file-meta {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
+        .row-right {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-copy {
+            background-color: var(--color-accent);
+            color: #f9fafb;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-copy:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(30, 64, 175, 0.5);
+        }
+
+        .btn-copy:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 14px rgba(30, 64, 175, 0.5);
+        }
+
+        .btn-revoke {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .btn-revoke:hover {
+            background-color: #fecaca;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(248, 113, 113, 0.4);
+        }
+
+        .btn-revoke:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 16px rgba(248, 113, 113, 0.4);
+        }
+
+        /* Empty state (match dashboard) */
+        .empty-state {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--color-text-muted);
+        }
+
+        .empty-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background-color: #e5edff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .empty-icon svg {
+            width: 34px;
+            height: 34px;
+            fill: var(--color-accent);
+        }
+
+        .empty-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--color-navy);
+        }
+
+        .empty-text {
+            font-size: 0.88rem;
+            color: var(--color-text-muted);
+        }
+
+        /* Toast (match dashboard) */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-navy);
+            color: #e5edff;
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .toast.visible {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .content {
+                padding: 20px 12px 24px;
+            }
+
+            .share-row {
+                align-items: flex-start;
+            }
+
+            .row-right {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="navbar">
+        <div class="navbar-left">
+            <div class="navbar-logo-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                    <path d="M7.5 18.5h9.25A4.25 4.25 0 0 0 21 14.25C21 11.9 19.2 10 16.9 10h-.07A5.25 5.25 0 0 0 6.6 9.26 3.75 3.75 0 0 0 7.5 18.5zm0 1.5A5.25 5.25 0 0 1 6 9.13 6.76 6.76 0 0 1 12.22 4 6.74 6.74 0 0 1 18.7 8.7C20.87 9 22.5 10.87 22.5 13.13A5.75 5.75 0 0 1 16.75 18.9H7.5z"></path>
+                </svg>
+            </div>
+            <span class="navbar-title">NimbusDrive</span>
+        </div>
+        <div class="navbar-right">
+            <div id="navbar-username" class="navbar-username"></div>
+            <a href="dashboard.html" class="navbar-shared-btn">My Files</a>
+            <button id="logout-btn" class="navbar-logout-btn" type="button">Logout</button>
+        </div>
+    </header>
+
+    <main class="content">
+        <div class="content-header">
+            <div class="content-titles">
+                <h1 class="content-title">Shared Files</h1>
+                <p id="share-count" class="content-subtitle">Loading shared files...</p>
+            </div>
+        </div>
+
+        <div id="status-message" class="status-message" style="display: none;"></div>
+
+        <div id="loading" class="loading-container">
+            <div class="spinner" aria-hidden="true"></div>
+            <span>Fetching shared files...</span>
+        </div>
+
+        <div id="shared-list" class="shared-list" style="display:none;"></div>
+
+        <div id="empty-state" class="empty-state" style="display:none;">
+            <div class="empty-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                    <path d="M7.5 18.5h9.25A4.25 4.25 0 0 0 21 14.25C21 11.9 19.2 10 16.9 10h-.07A5.25 5.25 0 0 0 6.6 9.26 3.75 3.75 0 0 0 7.5 18.5zm0 1.5A5.25 5.25 0 0 1 6 9.13 6.76 6.76 0 0 1 12.22 4 6.74 6.74 0 0 1 18.7 8.7C20.87 9 22.5 10.87 22.5 13.13A5.75 5.75 0 0 1 16.75 18.9H7.5z"></path>
+                </svg>
+            </div>
+            <p class="empty-title">No shared files yet.</p>
+            <p class="empty-text">Share a file from your dashboard to see it here.</p>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+</div>
+
+<script>
+    (function() {
+        const token = localStorage.getItem("token");
+        const username = localStorage.getItem("username");
+
+        if (!token) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const navbarUsernameEl = document.getElementById("navbar-username");
+        const logoutBtn = document.getElementById("logout-btn");
+        const shareCountEl = document.getElementById("share-count");
+        const statusMessageEl = document.getElementById("status-message");
+        const loadingEl = document.getElementById("loading");
+        const sharedListEl = document.getElementById("shared-list");
+        const emptyStateEl = document.getElementById("empty-state");
+        const toastEl = document.getElementById("toast");
+
+        navbarUsernameEl.textContent = username || "User";
+
+        logoutBtn.addEventListener("click", function() {
+            try {
+                localStorage.removeItem("token");
+                localStorage.removeItem("username");
+            } catch (e) {
+                // ignore
+            }
+            window.location.href = "login.html";
+        });
+
+        function showToast(message) {
+            if (!toastEl) return;
+            toastEl.textContent = message || "";
+            toastEl.classList.add("visible");
+            window.setTimeout(function() {
+                toastEl.classList.remove("visible");
+            }, 3000);
+        }
+
+        function setStatusMessage(message) {
+            if (!message) {
+                statusMessageEl.style.display = "none";
+                statusMessageEl.textContent = "";
+                return;
+            }
+            statusMessageEl.textContent = message;
+            statusMessageEl.style.display = "block";
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "";
+            try {
+                const d = new Date(dateString);
+                if (isNaN(d.getTime())) return dateString;
+                return d.toLocaleString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        function getFileTypeCategory(fileName) {
+            const lowerName = (fileName || "").toLowerCase();
+            if (lowerName.endsWith(".pdf")) return "pdf";
+            if (/\.(png|jpg|jpeg|gif|webp)$/.test(lowerName)) return "image";
+            if (lowerName.endsWith(".txt")) return "text";
+            if (/\.(mp4|mov|avi|mkv|webm)$/.test(lowerName)) return "video";
+            return "other";
+        }
+
+        function getFileIconLabel(category) {
+            if (category === "pdf") return "PDF";
+            if (category === "image") return "IMG";
+            if (category === "text") return "TXT";
+            if (category === "video") return "VID";
+            return "FILE";
+        }
+
+        function buildShareUrl(shareToken) {
+            return window.location.origin + '/share.html?token=' + shareToken;
+        }
+
+        function updateShareCount(count) {
+            const n = Number(count) || 0;
+            shareCountEl.textContent = n + (n === 1 ? " active share link" : " active share links");
+        }
+
+        function showEmptyState() {
+            sharedListEl.style.display = "none";
+            emptyStateEl.style.display = "flex";
+        }
+
+        function showList() {
+            emptyStateEl.style.display = "none";
+            sharedListEl.style.display = "flex";
+        }
+
+        function createShareRow(share) {
+            const row = document.createElement("div");
+            row.className = "share-row";
+            row.dataset.fileId = share.fileId;
+
+            const iconCategory = getFileTypeCategory(share.fileName);
+
+            const icon = document.createElement("div");
+            icon.className = "file-icon" + (iconCategory !== "other" ? " " + iconCategory : "");
+            icon.textContent = getFileIconLabel(iconCategory);
+
+            const left = document.createElement("div");
+            left.className = "row-left";
+
+            const name = document.createElement("div");
+            name.className = "file-name";
+            name.textContent = share.fileName || "(unknown file)";
+
+            const meta1 = document.createElement("div");
+            meta1.className = "file-meta";
+            meta1.textContent = "Shared on: " + formatDate(share.createdAt);
+
+            const meta2 = document.createElement("div");
+            meta2.className = "file-meta";
+            meta2.textContent = share.expiresAt ? "Expires: " + formatDate(share.expiresAt) : "No expiry";
+
+            left.appendChild(name);
+            left.appendChild(meta1);
+            left.appendChild(meta2);
+
+            const right = document.createElement("div");
+            right.className = "row-right";
+
+            const copyBtn = document.createElement("button");
+            copyBtn.type = "button";
+            copyBtn.className = "btn-small btn-copy";
+            copyBtn.textContent = "Copy Link";
+
+            copyBtn.addEventListener("click", function() {
+                const url = buildShareUrl(share.shareToken);
+                navigator.clipboard.writeText(url).then(function() {
+                    showToast("Link copied to clipboard!");
+                }).catch(function() {
+                    showToast("Failed to copy link.");
+                });
+            });
+
+            const revokeBtn = document.createElement("button");
+            revokeBtn.type = "button";
+            revokeBtn.className = "btn-small btn-revoke";
+            revokeBtn.textContent = "Revoke";
+
+            revokeBtn.addEventListener("click", function() {
+                revokeBtn.disabled = true;
+                fetch('/api/files/' + encodeURIComponent(share.fileId) + '/share', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                    .then(function(response) {
+                        revokeBtn.disabled = false;
+                        if (response.status === 401 || response.status === 403) {
+                            window.location.href = 'login.html';
+                            return;
+                        }
+                        if (!response.ok) {
+                            showToast('Failed to revoke link.');
+                            return;
+                        }
+
+                        row.remove();
+
+                        const remaining = sharedListEl.querySelectorAll('.share-row').length;
+                        updateShareCount(remaining);
+
+                        if (remaining === 0) {
+                            showEmptyState();
+                        }
+                    })
+                    .catch(function() {
+                        revokeBtn.disabled = false;
+                        showToast('Network error. Please try again.');
+                    });
+            });
+
+            right.appendChild(copyBtn);
+            right.appendChild(revokeBtn);
+
+            row.appendChild(icon);
+            row.appendChild(left);
+            row.appendChild(right);
+
+            return row;
+        }
+
+        async function fetchSharedFiles() {
+            try {
+                setStatusMessage('');
+                loadingEl.style.display = 'flex';
+                sharedListEl.style.display = 'none';
+                emptyStateEl.style.display = 'none';
+
+                const response = await fetch('/api/files/shared', {
+                    method: 'GET',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    loadingEl.style.display = 'none';
+                    setStatusMessage('Unable to load shared files.');
+                    updateShareCount(0);
+                    showEmptyState();
+                    return;
+                }
+
+                const data = await response.json();
+                const shares = Array.isArray(data) ? data : [];
+
+                sharedListEl.innerHTML = '';
+
+                if (shares.length === 0) {
+                    loadingEl.style.display = 'none';
+                    updateShareCount(0);
+                    showEmptyState();
+                    return;
+                }
+
+                shares.forEach(function(share) {
+                    const row = createShareRow(share);
+                    sharedListEl.appendChild(row);
+                });
+
+                loadingEl.style.display = 'none';
+                updateShareCount(shares.length);
+                showList();
+            } catch (e) {
+                loadingEl.style.display = 'none';
+                setStatusMessage('Unable to load shared files.');
+                updateShareCount(0);
+                showEmptyState();
+            }
+        }
+
+        fetchSharedFiles();
+    })();
+</script>
+</body>
+</html>
+

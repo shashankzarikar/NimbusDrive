@@ -130,6 +130,19 @@
             box-shadow: 0 6px 14px rgba(30, 64, 175, 0.5);
         }
 
+        .navbar-shared-btn {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,0.4);
+            color: #e5edff;
+            background: transparent;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* Main content */
         .content {
             flex: 1;
@@ -518,6 +531,125 @@
             opacity: 1;
         }
 
+        /* Share modal */
+        .share-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.55);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .share-modal-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 28px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(148, 163, 184, 0.22);
+        }
+
+        .share-modal-card h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-navy);
+            margin-bottom: 14px;
+            word-break: break-all;
+        }
+
+        .share-modal-card label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--color-navy);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .share-modal-card select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            background: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        .share-modal-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .modal-btn-accent {
+            background-color: var(--color-accent);
+            color: #f9fafb;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
+        }
+
+        .modal-btn-accent:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 24px rgba(30, 64, 175, 0.45);
+        }
+
+        .modal-btn-secondary {
+            background: #ffffff;
+            color: var(--color-navy);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .modal-btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(148, 163, 184, 0.18);
+        }
+
+        .share-link-box {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: #f8fafc;
+            color: var(--color-navy);
+            font-size: 0.9rem;
+            font-weight: 500;
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+
+        .share-expiry-label {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            margin-bottom: 10px;
+        }
+
+        .share-modal-status {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--color-error-text);
+            font-weight: 600;
+            min-height: 18px;
+        }
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -551,6 +683,7 @@
         </div>
         <div class="navbar-right">
             <div id="navbar-username" class="navbar-username"></div>
+            <a href="shared.html" class="navbar-shared-btn">Shared Files</a>
             <button id="logout-btn" class="navbar-logout-btn" type="button">Logout</button>
         </div>
     </header>
@@ -594,10 +727,43 @@
 
     <div id="dropdown-menu" class="dropdown-menu">
         <button id="dropdown-download" class="dropdown-item" type="button">↓  Download</button>
+        <button id="dropdown-share" class="dropdown-item" type="button">🔗  Share</button>
         <button id="dropdown-delete" class="dropdown-item dropdown-item-delete" type="button">🗑  Delete</button>
     </div>
 
     <div id="toast" class="toast"></div>
+
+    <div id="share-modal-overlay" class="share-modal-overlay">
+        <div class="share-modal-card" role="dialog" aria-modal="true">
+            <div id="share-state-a">
+                <h2 id="share-modal-filename"></h2>
+                <label for="share-expiry-select">Link Expiry</label>
+                <select id="share-expiry-select">
+                    <option value="1_HOUR">1 Hour</option>
+                    <option value="24_HOURS">24 Hours</option>
+                    <option value="7_DAYS">7 Days</option>
+                    <option value="30_DAYS">30 Days</option>
+                    <option value="NEVER">Never</option>
+                </select>
+
+                <div class="share-modal-actions">
+                    <button id="share-generate-btn" class="modal-btn modal-btn-accent" type="button">Generate Link</button>
+                    <button id="share-modal-cancel-a" class="modal-btn modal-btn-secondary" type="button">Cancel</button>
+                </div>
+                <div id="share-modal-status" class="share-modal-status"></div>
+            </div>
+
+            <div id="share-state-b" style="display:none;">
+                <h2 id="share-modal-filename-b"></h2>
+                <div id="share-link-box" class="share-link-box"></div>
+                <div id="share-expiry-label" class="share-expiry-label"></div>
+                <div class="share-modal-actions">
+                    <button id="share-copy-btn" class="modal-btn modal-btn-accent" type="button">Copy Link</button>
+                    <button id="share-modal-cancel-b" class="modal-btn modal-btn-secondary" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -625,6 +791,22 @@
         const dropdownEl = document.getElementById("dropdown-menu");
         const dropdownDownloadBtn = document.getElementById("dropdown-download");
         const dropdownDeleteBtn = document.getElementById("dropdown-delete");
+        const dropdownShareBtn = document.getElementById("dropdown-share");
+        const shareModalOverlay = document.getElementById("share-modal-overlay");
+        const shareModalFilename = document.getElementById("share-modal-filename");
+        const shareModalFilenameB = document.getElementById("share-modal-filename-b");
+        const shareStateA = document.getElementById("share-state-a");
+        const shareStateB = document.getElementById("share-state-b");
+        const shareExpirySelect = document.getElementById("share-expiry-select");
+        const shareGenerateBtn = document.getElementById("share-generate-btn");
+        const shareCancelA = document.getElementById("share-modal-cancel-a");
+        const shareCancelB = document.getElementById("share-modal-cancel-b");
+        const shareLinkBox = document.getElementById("share-link-box");
+        const shareExpiryLabel = document.getElementById("share-expiry-label");
+        const shareCopyBtn = document.getElementById("share-copy-btn");
+        const shareModalStatus = document.getElementById("share-modal-status");
+
+        let activeShareFileId = null;
 
         const pageSize = 9;
         let currentPage = 0;
@@ -649,6 +831,109 @@
                 toastEl.classList.remove("visible");
             }, 3000);
         }
+
+        function buildShareUrl(shareToken) {
+            return window.location.origin + '/share.html?token=' + shareToken;
+        }
+
+        function openShareModal(fileId, fileName) {
+            activeShareFileId = fileId;
+            shareModalFilename.textContent = fileName;
+            shareModalFilenameB.textContent = fileName;
+            shareModalStatus.textContent = '';
+            shareStateA.style.display = 'block';
+            shareStateB.style.display = 'none';
+            shareModalOverlay.style.display = 'flex';
+
+            fetch('/api/files/' + encodeURIComponent(fileId) + '/share', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+                .then(function(response) {
+                    if (response.status === 404) {
+                        shareStateA.style.display = 'block';
+                        shareStateB.style.display = 'none';
+                        return;
+                    }
+                    if (response.status === 401 || response.status === 403) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    if (response.ok) {
+                        return response.json().then(function(data) {
+                            shareLinkBox.textContent = buildShareUrl(data.shareToken);
+                            shareExpiryLabel.textContent = data.expiresAt
+                                ? 'Expires: ' + new Date(data.expiresAt).toLocaleString()
+                                : 'No expiry';
+                            shareStateA.style.display = 'none';
+                            shareStateB.style.display = 'block';
+                        });
+                    }
+                })
+                .catch(function() {
+                    shareModalStatus.textContent = 'Failed to check share status.';
+                });
+        }
+
+        function closeShareModal() {
+            shareModalOverlay.style.display = 'none';
+            activeShareFileId = null;
+        }
+
+        shareGenerateBtn.addEventListener('click', function() {
+            if (!activeShareFileId) return;
+            const duration = shareExpirySelect.value;
+            shareGenerateBtn.disabled = true;
+            shareModalStatus.textContent = '';
+
+            fetch('/api/files/' + encodeURIComponent(activeShareFileId) + '/share?duration=' + encodeURIComponent(duration), {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+                .then(function(response) {
+                    shareGenerateBtn.disabled = false;
+                    if (response.status === 401 || response.status === 403) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    if (!response.ok) {
+                        return response.json().then(function(data) {
+                            shareModalStatus.textContent = data.message || 'Failed to generate link.';
+                        });
+                    }
+                    return response.json().then(function(data) {
+                        shareLinkBox.textContent = buildShareUrl(data.shareToken);
+                        shareExpiryLabel.textContent = data.expiresAt
+                            ? 'Expires: ' + new Date(data.expiresAt).toLocaleString()
+                            : 'No expiry';
+                        shareStateA.style.display = 'none';
+                        shareStateB.style.display = 'block';
+                    });
+                })
+                .catch(function() {
+                    shareGenerateBtn.disabled = false;
+                    shareModalStatus.textContent = 'Network error. Please try again.';
+                });
+        });
+
+        shareCopyBtn.addEventListener('click', function() {
+            const url = shareLinkBox.textContent;
+            if (!url) return;
+            navigator.clipboard.writeText(url).then(function() {
+                showToast('Link copied to clipboard!');
+            }).catch(function() {
+                showToast('Failed to copy link.');
+            });
+        });
+
+        shareCancelA.addEventListener('click', closeShareModal);
+        shareCancelB.addEventListener('click', closeShareModal);
+
+        shareModalOverlay.addEventListener('click', function(event) {
+            if (event.target === shareModalOverlay) {
+                closeShareModal();
+            }
+        });
 
         function showDropdown(file, event, cardElement) {
             if (!dropdownEl) return;
@@ -688,6 +973,13 @@
                 dropdownDeleteBtn.onclick = function () {
                     handleDelete(file, cardElement);
                     dropdownEl.classList.remove("visible");
+                };
+            }
+
+            if (dropdownShareBtn) {
+                dropdownShareBtn.onclick = function() {
+                    openShareModal(file.id, file.fileName);
+                    dropdownEl.classList.remove('visible');
                 };
             }
         }

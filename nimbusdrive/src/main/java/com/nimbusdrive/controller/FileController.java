@@ -100,4 +100,3 @@ public class FileController {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }
-

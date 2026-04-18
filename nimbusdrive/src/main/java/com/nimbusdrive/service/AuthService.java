@@ -1,27 +1,24 @@
 package com.nimbusdrive.service;
 
+import com.nimbusdrive.dto.LoginResponse;
 import com.nimbusdrive.dto.LoginRequest;
 import com.nimbusdrive.dto.RegisterRequest;
 import com.nimbusdrive.model.User;
 import com.nimbusdrive.repository.UserRepository;
 import com.nimbusdrive.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
-
+@RequiredArgsConstructor
 public class AuthService {
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final TwoFactorService twoFactorService;
 
     public String register(RegisterRequest request){
         //Step1 : check if username exists
@@ -49,7 +46,7 @@ public class AuthService {
         return "User registered successfully !";
     }
 
-    public String login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
 
         // Step 1: Find by username or email
         User user = userRepository
@@ -69,8 +66,39 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials!");
         }
 
-        // Step 3: Generate and return token
-        return jwtUtil.generateToken(user.getUsername());
+        // Step 3: If 2FA enabled, send OTP and require verification
+        if (Boolean.TRUE.equals(user.getIs2faEnabled())) {
+            twoFactorService.generateAndSendOtp(user);
+            return LoginResponse.builder()
+                    .requires2FA(true)
+                    .message("OTP sent to your email")
+                    .build();
+        }
+
+        // Step 4: Generate and return token
+        String jwt = jwtUtil.generateToken(user.getUsername());
+        return LoginResponse.builder()
+                .token(jwt)
+                .requires2FA(false)
+                .build();
+    }
+
+    public LoginResponse verifyOtpAndLogin(String username, String otpCode) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials!");
+        }
+
+        boolean isValid = twoFactorService.verifyOtp(user, otpCode);
+        if (!isValid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired OTP");
+        }
+
+        String jwt = jwtUtil.generateToken(user.getUsername());
+        return LoginResponse.builder()
+                .token(jwt)
+                .requires2FA(false)
+                .build();
     }
 
 

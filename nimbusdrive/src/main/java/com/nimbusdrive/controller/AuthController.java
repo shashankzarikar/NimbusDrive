@@ -1,18 +1,21 @@
 package com.nimbusdrive.controller;
 
 import com.nimbusdrive.dto.LoginRequest;
+import com.nimbusdrive.dto.LoginResponse;
 import com.nimbusdrive.dto.RegisterRequest;
 import com.nimbusdrive.service.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
-    @Autowired
-    private AuthService authService ;
+    private final AuthService authService;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
@@ -21,8 +24,15 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@Valid @RequestBody LoginRequest request) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/verify-otp")
+    public LoginResponse verifyOtp(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+        String otpCode = body.get("otpCode");
+        return authService.verifyOtpAndLogin(username, otpCode);
     }
 
 }

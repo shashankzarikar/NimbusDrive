@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>NimbusDrive – Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            /* Color palette (60-30-10) */
+            --color-bg: #f8fafc;          /* dominant 60% */
+            --color-navy: #1a2b4a;        /* secondary 30% */
+            --color-accent: #2563eb;      /* accent 10% */
+
+            /* Supporting colors (match dashboard.html) */
+            --color-border: #d4dbe7;
+            --color-text-muted: #64748b;
+            --color-error-bg: #fee2e2;
+            --color-error-text: #b91c1c;
+            --color-success-bg: #dcfce7;
+            --color-success-text: #166534;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-navy);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar (match dashboard.html) */
+        .navbar {
+            background-color: var(--color-navy);
+            color: #e5edff;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.4);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            background: rgba(248, 250, 252, 0.06);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .navbar-logo-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #e5edff;
+        }
+
+        .navbar-title {
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+        }
+
+        .navbar-username {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background-color: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            color: #e5edff;
+        }
+
+        .navbar-link {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,0.4);
+            color: #e5edff;
+            background: transparent;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .navbar-link:hover {
+            background-color: rgba(248, 250, 252, 0.08);
+        }
+
+        .navbar-link.active {
+            border-color: rgba(37, 99, 235, 0.65);
+            background-color: rgba(37, 99, 235, 0.18);
+        }
+
+        .navbar-logout-btn {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: none;
+            background-color: var(--color-accent);
+            color: #f9fafb;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+        }
+
+        .navbar-logout-btn:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(30, 64, 175, 0.5);
+        }
+
+        .navbar-logout-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 14px rgba(30, 64, 175, 0.5);
+        }
+
+        /* Main content */
+        .content {
+            flex: 1;
+            padding: 24px 20px 32px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .settings-card {
+            width: 100%;
+            max-width: 600px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 22px 22px 20px;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(148, 163, 184, 0.18);
+        }
+
+        .settings-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--color-navy);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--color-navy);
+            margin-bottom: 12px;
+        }
+
+        .twofa-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: #ffffff;
+        }
+
+        .twofa-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            background: #eff6ff;
+            color: var(--color-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .twofa-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--color-accent);
+        }
+
+        .twofa-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .twofa-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--color-navy);
+        }
+
+        .twofa-subtitle {
+            font-size: 0.82rem;
+            color: var(--color-text-muted);
+            line-height: 1.35;
+        }
+
+        /* Toggle switch (CSS-only checkbox) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 54px;
+            height: 30px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #cbd5e1;
+            border-radius: 999px;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 3px;
+            top: 3px;
+            background-color: #ffffff;
+            border-radius: 999px;
+            transition: transform 0.2s ease;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+        }
+
+        input:checked + .slider {
+            background-color: var(--color-accent);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Collapsible actions area */
+        .twofa-actions {
+            margin-top: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: #ffffff;
+            padding: 0 14px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-6px);
+            transition: max-height 0.25s ease, opacity 0.25s ease, transform 0.25s ease, padding 0.25s ease;
+        }
+
+        .twofa-actions.open {
+            padding: 14px;
+            max-height: 440px;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .field-group label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--color-navy);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .field-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            background: #ffffff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .field-group input:focus {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+        }
+
+        .otp-input {
+            font-size: 2rem;
+            letter-spacing: 0.22em;
+            text-align: center;
+            padding: 12px 12px;
+        }
+
+        .actions-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.75;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-btn-primary {
+            background-color: var(--color-accent);
+            color: #f9fafb;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
+        }
+
+        .action-btn-primary:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 24px rgba(30, 64, 175, 0.45);
+        }
+
+        .action-btn-secondary {
+            background: #ffffff;
+            color: var(--color-navy);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .action-btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(148, 163, 184, 0.18);
+        }
+
+        .action-btn-danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .action-btn-danger:hover {
+            background-color: #fecaca;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(248, 113, 113, 0.35);
+        }
+
+        .inline-error {
+            margin-top: 10px;
+            border-radius: 12px;
+            background: var(--color-error-bg);
+            color: var(--color-error-text);
+            padding: 10px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        /* Toast (match dashboard.html) */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-navy);
+            color: #e5edff;
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .toast.visible {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .content {
+                padding: 20px 12px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="navbar">
+        <div class="navbar-left">
+            <div class="navbar-logo-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                    <path d="M7.5 18.5h9.25A4.25 4.25 0 0 0 21 14.25C21 11.9 19.2 10 16.9 10h-.07A5.25 5.25 0 0 0 6.6 9.26 3.75 3.75 0 0 0 7.5 18.5zm0 1.5A5.25 5.25 0 0 1 6 9.13 6.76 6.76 0 0 1 12.22 4 6.74 6.74 0 0 1 18.7 8.7C20.87 9 22.5 10.87 22.5 13.13A5.75 5.75 0 0 1 16.75 18.9H7.5z"></path>
+                </svg>
+            </div>
+            <span class="navbar-title">NimbusDrive</span>
+        </div>
+        <div class="navbar-right">
+            <div id="navbar-username" class="navbar-username"></div>
+            <a href="dashboard.html" class="navbar-link">Dashboard</a>
+            <a href="shared.html" class="navbar-link">Shared Files</a>
+            <a href="settings.html" class="navbar-link active">Settings</a>
+            <button id="logout-btn" class="navbar-logout-btn" type="button">Logout</button>
+        </div>
+    </header>
+
+    <main class="content">
+        <div class="settings-card">
+            <h1 class="settings-title">Settings</h1>
+
+            <div class="settings-section">
+                <h2 class="section-title">Security</h2>
+
+                <div class="twofa-row">
+                    <div class="twofa-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                            <path d="M17 8h-1V6a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4V6zm7 13H7v-9h10v9z"></path>
+                        </svg>
+                    </div>
+
+                    <div class="twofa-text">
+                        <div class="twofa-title">Two-Factor Authentication</div>
+                        <div class="twofa-subtitle">Require an email OTP code each time you sign in</div>
+                    </div>
+
+                    <label class="switch" aria-label="Two factor authentication toggle">
+                        <input id="twofa-toggle" type="checkbox" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="twofa-actions" class="twofa-actions">
+                    <div id="password-group" class="field-group">
+                        <label for="twofa-password">Confirm your password</label>
+                        <input id="twofa-password" type="password" placeholder="••••••••" autocomplete="current-password" />
+                    </div>
+
+                    <div id="otp-group" class="field-group" style="display:none;">
+                        <label for="twofa-otp">OTP Code</label>
+                        <input id="twofa-otp" class="otp-input" type="text" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="000000" />
+                    </div>
+
+                    <div class="actions-row">
+                        <button id="twofa-enable-btn" class="action-btn action-btn-primary" type="button">Enable 2FA</button>
+                        <button id="twofa-verify-btn" class="action-btn action-btn-primary" type="button" style="display:none;">Verify</button>
+                        <button id="twofa-disable-btn" class="action-btn action-btn-danger" type="button">Disable 2FA</button>
+                        <button id="twofa-cancel-btn" class="action-btn action-btn-secondary" type="button">Cancel</button>
+                    </div>
+
+                    <div id="twofa-error" class="inline-error"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+</div>
+
+<script>
+    (function () {
+        const token = localStorage.getItem("token");
+        const username = localStorage.getItem("username");
+
+        if (!token) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const navbarUsernameEl = document.getElementById("navbar-username");
+        const logoutBtn = document.getElementById("logout-btn");
+
+        const twofaToggle = document.getElementById("twofa-toggle");
+        const twofaActions = document.getElementById("twofa-actions");
+        const passwordGroup = document.getElementById("password-group");
+        const passwordInput = document.getElementById("twofa-password");
+        const otpGroup = document.getElementById("otp-group");
+        const otpInput = document.getElementById("twofa-otp");
+        const enableBtn = document.getElementById("twofa-enable-btn");
+        const verifyBtn = document.getElementById("twofa-verify-btn");
+        const disableBtn = document.getElementById("twofa-disable-btn");
+        const cancelBtn = document.getElementById("twofa-cancel-btn");
+        const errorEl = document.getElementById("twofa-error");
+        const toastEl = document.getElementById("toast");
+
+        let is2faEnabled = false;
+        let pendingPassword = null;
+        let isBusy = false;
+
+        navbarUsernameEl.textContent = username || "User";
+
+        logoutBtn.addEventListener("click", function () {
+            try {
+                localStorage.removeItem("token");
+                localStorage.removeItem("username");
+            } catch (e) {
+                // ignore
+            }
+            window.location.href = "login.html";
+        });
+
+        function showToast(message) {
+            if (!toastEl) return;
+            toastEl.textContent = message || "";
+            toastEl.classList.add("visible");
+            window.setTimeout(function () {
+                toastEl.classList.remove("visible");
+            }, 3000);
+        }
+
+        function setError(message) {
+            if (!message) {
+                errorEl.style.display = "none";
+                errorEl.textContent = "";
+                return;
+            }
+            errorEl.textContent = message;
+            errorEl.style.display = "block";
+        }
+
+        function setBusy(busy) {
+            isBusy = !!busy;
+            enableBtn.disabled = isBusy;
+            disableBtn.disabled = isBusy;
+            verifyBtn.disabled = isBusy;
+            cancelBtn.disabled = isBusy;
+            twofaToggle.disabled = isBusy;
+        }
+
+        function resetActionFields() {
+            setError("");
+            pendingPassword = null;
+
+            passwordInput.value = "";
+            otpInput.value = "";
+
+            passwordGroup.style.display = "block";
+            otpGroup.style.display = "none";
+
+            verifyBtn.style.display = "none";
+        }
+
+        function openActionArea() {
+            twofaActions.classList.add("open");
+        }
+
+        function closeActionArea() {
+            twofaActions.classList.remove("open");
+            resetActionFields();
+        }
+
+        function configureActionsForDesiredState(desiredEnabled) {
+            // show enable or disable flow based on desired state
+            if (desiredEnabled) {
+                enableBtn.style.display = "block";
+                disableBtn.style.display = "none";
+            } else {
+                enableBtn.style.display = "none";
+                disableBtn.style.display = "block";
+            }
+        }
+
+        async function fetch2faStatus() {
+            try {
+                setBusy(true);
+                const response = await fetch("/api/user/2fa/status", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                if (!response.ok) {
+                    // default to disabled if status cannot be loaded
+                    is2faEnabled = false;
+                    twofaToggle.checked = false;
+                    setBusy(false);
+                    return;
+                }
+
+                const data = await response.json();
+                is2faEnabled = !!(data && data.is2faEnabled);
+                twofaToggle.checked = is2faEnabled;
+                setBusy(false);
+            } catch (e) {
+                is2faEnabled = false;
+                twofaToggle.checked = false;
+                setBusy(false);
+            }
+        }
+
+        twofaToggle.addEventListener("change", function () {
+            if (isBusy) return;
+            setError("");
+            resetActionFields();
+
+            const desiredEnabled = !!twofaToggle.checked;
+
+            // If user toggles back to the actual state, just close.
+            if (desiredEnabled === is2faEnabled) {
+                closeActionArea();
+                return;
+            }
+
+            configureActionsForDesiredState(desiredEnabled);
+            openActionArea();
+
+            window.setTimeout(function () {
+                if (passwordInput && passwordGroup.style.display !== "none") {
+                    passwordInput.focus();
+                }
+            }, 50);
+        });
+
+        cancelBtn.addEventListener("click", function () {
+            if (isBusy) return;
+            closeActionArea();
+            twofaToggle.checked = is2faEnabled;
+        });
+
+        enableBtn.addEventListener("click", async function () {
+            if (isBusy) return;
+            setError("");
+
+            const password = (passwordInput.value || "").trim();
+            if (!password) {
+                setError("Please confirm your password.");
+                return;
+            }
+
+            setBusy(true);
+
+            try {
+                const response = await fetch("/api/user/2fa/enable", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ password: password })
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const data = await response.json().catch(function () { return null; });
+
+                if (!response.ok) {
+                    setError((data && data.message) ? data.message : "Unable to enable 2FA.");
+                    setBusy(false);
+                    return;
+                }
+
+                // First step returns requiresOtp
+                if (data && data.requiresOtp) {
+                    pendingPassword = password;
+                    passwordGroup.style.display = "none";
+                    enableBtn.style.display = "none";
+                    otpGroup.style.display = "block";
+                    verifyBtn.style.display = "block";
+                    setBusy(false);
+                    window.setTimeout(function () {
+                        otpInput.focus();
+                    }, 50);
+                    return;
+                }
+
+                // Unexpected success response
+                setBusy(false);
+                setError("Unexpected response. Please try again.");
+            } catch (e) {
+                setBusy(false);
+                setError("Network error. Please try again.");
+            }
+        });
+
+        verifyBtn.addEventListener("click", async function () {
+            if (isBusy) return;
+            setError("");
+
+            const otpCode = (otpInput.value || "").trim();
+            if (!/^[0-9]{6}$/.test(otpCode)) {
+                setError("Please enter the 6-digit code.");
+                return;
+            }
+
+            if (!pendingPassword) {
+                setError("Please restart the enable flow.");
+                return;
+            }
+
+            setBusy(true);
+
+            try {
+                const response = await fetch("/api/user/2fa/enable", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ password: pendingPassword, otpCode: otpCode })
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const data = await response.json().catch(function () { return null; });
+
+                if (!response.ok) {
+                    setError((data && data.message) ? data.message : "Unable to verify OTP.");
+                    setBusy(false);
+                    return;
+                }
+
+                is2faEnabled = true;
+                twofaToggle.checked = true;
+                setBusy(false);
+                closeActionArea();
+                showToast("2FA enabled successfully");
+            } catch (e) {
+                setBusy(false);
+                setError("Network error. Please try again.");
+            }
+        });
+
+        disableBtn.addEventListener("click", async function () {
+            if (isBusy) return;
+            setError("");
+
+            const password = (passwordInput.value || "").trim();
+            if (!password) {
+                setError("Please confirm your password.");
+                return;
+            }
+
+            setBusy(true);
+
+            try {
+                const response = await fetch("/api/user/2fa/disable", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ password: password })
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const data = await response.json().catch(function () { return null; });
+
+                if (!response.ok) {
+                    setError((data && data.message) ? data.message : "Unable to disable 2FA.");
+                    setBusy(false);
+                    return;
+                }
+
+                is2faEnabled = false;
+                twofaToggle.checked = false;
+                setBusy(false);
+                closeActionArea();
+                showToast("2FA disabled successfully");
+            } catch (e) {
+                setBusy(false);
+                setError("Network error. Please try again.");
+            }
+        });
+
+        fetch2faStatus();
+    })();
+</script>
+</body>
+</html>
+

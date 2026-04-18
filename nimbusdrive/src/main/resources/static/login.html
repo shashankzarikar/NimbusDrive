@@ -338,27 +338,78 @@
             display: block;
         }
 
-        .auth-footer {
-            margin-top: 18px;
-            font-size: 0.85rem;
-            color: var(--color-text-muted);
+        /* OTP modal (reuses card; no overlay) */
+        .otp-modal {
+            display: none;
+        }
+
+        .otp-input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+            background-color: var(--color-bg);
+            color: var(--color-navy);
+            font-size: 2rem;
+            letter-spacing: 0.35em;
+            text-align: center;
+            font-weight: 600;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 1px var(--color-accent-soft), 0 0 0 4px rgba(37, 99, 235, 0.15);
+        }
+
+        .otp-resend-row {
+            margin-top: 12px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
         }
 
-        .auth-link {
+        .otp-resend-button {
+            border: none;
+            background: transparent;
+            padding: 0;
+            font: inherit;
             color: var(--color-accent);
-            font-weight: 500;
-            text-decoration: none;
-            margin-left: 4px;
-            transition: color 0.2s ease, text-decoration-color 0.2s ease;
-            text-decoration-color: transparent;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s ease, opacity 0.2s ease;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
-        .auth-link:hover {
-            text-decoration: underline;
-            text-decoration-color: var(--color-accent);
-            color: #1d4ed8;
+        .otp-resend-button:disabled {
+            opacity: 0.6;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .otp-back-link {
+            margin-top: 14px;
+            display: inline-block;
+            color: var(--color-text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s ease;
+        }
+
+        .otp-back-link:hover {
+            color: var(--color-navy);
+        }
+
+        .auth-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid rgba(34, 197, 94, 0.55);
         }
 
         /* Animations */
@@ -498,6 +549,43 @@
                 </div>
             </form>
 
+            <!-- OTP modal content (replaces login form inside same card) -->
+            <div id="otp-modal" class="otp-modal" aria-label="NimbusDrive OTP verification">
+                <header class="auth-header" style="margin-bottom: 18px;">
+                    <h2 class="auth-heading">Check your email</h2>
+                    <p class="auth-subheading">Enter the 6-digit code sent to your email</p>
+                </header>
+
+                <div id="otp-error" class="auth-error" role="alert"></div>
+
+                <div class="auth-form-group">
+                    <label class="auth-label" for="otp-input">One-time code</label>
+                    <input
+                            id="otp-input"
+                            class="otp-input"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="6"
+                            pattern="[0-9]{6}"
+                            placeholder="000000"
+                            autocomplete="one-time-code"
+                    />
+                </div>
+
+                <div class="auth-actions" style="margin-top: 10px; margin-bottom: 10px;">
+                    <button type="button" id="otp-verify-button" class="auth-button">
+                        <span id="otp-verify-button-text">Verify</span>
+                    </button>
+                </div>
+
+                <div class="otp-resend-row">
+                    <span>Didn't receive it?</span>
+                    <button type="button" id="otp-resend-button" class="otp-resend-button">Resend</button>
+                </div>
+
+                <a href="#" id="otp-back-link" class="otp-back-link">← Back to login</a>
+            </div>
+
             <div class="auth-footer">
                 <span>Don't have an account?</span>
                 <a href="register.html" class="auth-link">Register</a>
@@ -515,6 +603,19 @@
         const loginButton = document.getElementById("login-button");
         const loginButtonText = document.getElementById("login-button-text");
 
+        const authHeader = document.querySelector(".auth-card > .auth-header");
+
+        const otpModal = document.getElementById("otp-modal");
+        const otpInput = document.getElementById("otp-input");
+        const otpErrorBox = document.getElementById("otp-error");
+        const otpVerifyButton = document.getElementById("otp-verify-button");
+        const otpVerifyButtonText = document.getElementById("otp-verify-button-text");
+        const otpResendButton = document.getElementById("otp-resend-button");
+        const otpBackLink = document.getElementById("otp-back-link");
+
+        let resendCountdownTimer = null;
+        let resendRemainingSeconds = 0;
+
         function showError(message) {
             errorBox.textContent = message;
             errorBox.classList.add("visible");
@@ -523,6 +624,22 @@
         function clearError() {
             errorBox.textContent = "";
             errorBox.classList.remove("visible");
+        }
+
+        function showOtpError(message, isSuccess) {
+            otpErrorBox.textContent = message;
+            otpErrorBox.classList.add("visible");
+            if (isSuccess) {
+                otpErrorBox.classList.add("auth-success");
+            } else {
+                otpErrorBox.classList.remove("auth-success");
+            }
+        }
+
+        function clearOtpError() {
+            otpErrorBox.textContent = "";
+            otpErrorBox.classList.remove("visible");
+            otpErrorBox.classList.remove("auth-success");
         }
 
         function setLoading(isLoading) {
@@ -543,6 +660,82 @@
                 }
             }
         }
+
+        function setOtpVerifyLoading(isLoading) {
+            if (isLoading) {
+                otpVerifyButton.disabled = true;
+                otpVerifyButtonText.textContent = "Verifying...";
+                if (!otpVerifyButton.querySelector(".auth-button-spinner")) {
+                    const spinner = document.createElement("span");
+                    spinner.className = "auth-button-spinner";
+                    otpVerifyButton.appendChild(spinner);
+                }
+            } else {
+                otpVerifyButton.disabled = false;
+                otpVerifyButtonText.textContent = "Verify";
+                const spinner = otpVerifyButton.querySelector(".auth-button-spinner");
+                if (spinner) {
+                    spinner.remove();
+                }
+            }
+        }
+
+        function clearResendCountdown() {
+            if (resendCountdownTimer) {
+                clearInterval(resendCountdownTimer);
+                resendCountdownTimer = null;
+            }
+            resendRemainingSeconds = 0;
+            otpResendButton.disabled = false;
+            otpResendButton.textContent = "Resend";
+        }
+
+        function startResendCountdown(seconds) {
+            clearResendCountdown();
+            resendRemainingSeconds = seconds;
+            otpResendButton.disabled = true;
+            otpResendButton.textContent = "Resend (" + resendRemainingSeconds + "s)";
+
+            resendCountdownTimer = setInterval(function () {
+                resendRemainingSeconds -= 1;
+                if (resendRemainingSeconds <= 0) {
+                    clearResendCountdown();
+                    return;
+                }
+                otpResendButton.textContent = "Resend (" + resendRemainingSeconds + "s)";
+            }, 1000);
+        }
+
+        function showOtpModal() {
+            clearOtpError();
+            errorBox.classList.remove("visible");
+
+            if (authHeader) {
+                authHeader.style.display = "none";
+            }
+            form.style.display = "none";
+            otpModal.style.display = "block";
+
+            otpInput.value = "";
+            otpInput.focus();
+            startResendCountdown(60);
+        }
+
+        function hideOtpModal() {
+            if (authHeader) {
+                authHeader.style.display = "block";
+            }
+            form.style.display = "block";
+            otpModal.style.display = "none";
+            otpInput.value = "";
+            clearOtpError();
+            clearResendCountdown();
+        }
+
+        otpBackLink.addEventListener("click", function (event) {
+            event.preventDefault();
+            hideOtpModal();
+        });
 
         form.addEventListener("submit", async function (event) {
             event.preventDefault();
@@ -575,34 +768,161 @@
                 if (!response.ok) {
                     let msg = "Unable to sign in. Please check your credentials and try again.";
                     try {
-                        msg = await response.text();
+                        const err = await response.json();
+                        msg = err.message || msg;
                     } catch (e) {
-                        // Ignore text parse errors; keep default message
+                        // ignore
                     }
                     showError(msg);
                     setLoading(false);
                     return;
                 }
 
-                const token = await response.text();
+                const data = await response.json();
 
-                if (!token || token.includes(" ")) {
-                    showError(token || "Login failed. Please try again.");
+                if (data.requires2FA) {
+                    try {
+                        localStorage.setItem("pendingUsername", usernameOrEmail);
+                    } catch (e) {
+                        // ignore
+                    }
                     setLoading(false);
+                    showOtpModal();
                     return;
                 }
 
                 try {
-                    localStorage.setItem("token", token);
+                    localStorage.setItem("token", data.token);
                     localStorage.setItem("username", usernameOrEmail);
                 } catch (e) {
-                    // Storage may fail in private modes; still attempt redirect
+                    // ignore
                 }
 
                 window.location.href = "dashboard.html";
             } catch (error) {
                 showError("Network error while signing in. Please check your connection and try again.");
                 setLoading(false);
+            }
+        });
+
+        otpVerifyButton.addEventListener("click", async function () {
+            clearOtpError();
+
+            const otpValue = (otpInput.value || "").trim();
+            if (!/^[0-9]{6}$/.test(otpValue)) {
+                showOtpError("Please enter the 6-digit code");
+                return;
+            }
+
+            const pendingUsername = (function () {
+                try {
+                    return localStorage.getItem("pendingUsername");
+                } catch (e) {
+                    return null;
+                }
+            })();
+
+            if (!pendingUsername) {
+                showOtpError("Session expired. Please sign in again.");
+                hideOtpModal();
+                return;
+            }
+
+            setOtpVerifyLoading(true);
+
+            try {
+                const response = await fetch("/api/auth/verify-otp", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username: pendingUsername,
+                        otpCode: otpValue
+                    })
+                });
+
+                if (!response.ok) {
+                    let msg = "Invalid code. Please try again.";
+                    try {
+                        const err = await response.json();
+                        msg = err.message || msg;
+                    } catch (e) {
+                        // ignore
+                    }
+                    showOtpError(msg);
+                    setOtpVerifyLoading(false);
+                    return;
+                }
+
+                const data = await response.json();
+
+                try {
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("username", pendingUsername);
+                    localStorage.removeItem("pendingUsername");
+                } catch (e) {
+                    // ignore
+                }
+
+                window.location.href = "dashboard.html";
+            } catch (e) {
+                showOtpError("Network error. Please try again.");
+                setOtpVerifyLoading(false);
+            }
+        });
+
+        otpResendButton.addEventListener("click", async function () {
+            clearOtpError();
+
+            const usernameOrEmail = usernameInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!usernameOrEmail || !password) {
+                showOtpError("Please enter your credentials again to resend the code.");
+                return;
+            }
+
+            otpResendButton.disabled = true;
+
+            try {
+                const response = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        usernameOrEmail: usernameOrEmail,
+                        password: password
+                    })
+                });
+
+                if (!response.ok) {
+                    let msg = "Unable to resend code. Please try again.";
+                    try {
+                        const err = await response.json();
+                        msg = err.message || msg;
+                    } catch (e) {
+                        // ignore
+                    }
+                    showOtpError(msg);
+                    otpResendButton.disabled = false;
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data && data.requires2FA) {
+                    showOtpError("Code resent!", true);
+                    startResendCountdown(60);
+                    return;
+                }
+
+                showOtpError("Unable to resend code. Please try again.");
+                otpResendButton.disabled = false;
+            } catch (e) {
+                showOtpError("Network error. Please try again.");
+                otpResendButton.disabled = false;
             }
         });
     })();

@@ -2,6 +2,7 @@ package com.nimbusdrive.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +21,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING) //This tells MySQL to store role as "USER" or "ADMIN" text , not as a number
@@ -28,6 +30,9 @@ public class User {
     private Long storageLimit = 1073741824L; // 1 GB in bytes
     private Long storageUsed = 0L;
     private Boolean isActive = true;
+
+    @Column(name = "is_2fa_enabled", nullable = false)
+    private Boolean is2faEnabled = false;
     private LocalDateTime createdAt =LocalDateTime.now();
 
     public enum Role {

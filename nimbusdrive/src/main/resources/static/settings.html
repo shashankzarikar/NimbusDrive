@@ -430,6 +430,42 @@
             opacity: 1;
         }
 
+        .settings-section + .settings-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .storage-bar-wrap {
+            margin-top: 10px;
+            background: #f1f5f9;
+            border-radius: 999px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .storage-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: var(--color-accent);
+            transition: width 0.4s ease, background-color 0.4s ease;
+            width: 0%;
+        }
+
+        .storage-bar-fill.warning {
+            background: #f59e0b;
+        }
+
+        .storage-bar-fill.danger {
+            background: #ef4444;
+        }
+
+        .storage-label {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            margin-top: 8px;
+        }
+
         @media (max-width: 768px) {
             .navbar {
                 flex-direction: column;
@@ -508,6 +544,14 @@
 
                     <div id="twofa-error" class="inline-error"></div>
                 </div>
+            </div>
+
+            <div class="settings-section">
+                <h2 class="section-title">Storage</h2>
+                <div class="storage-bar-wrap">
+                    <div id="storage-bar-fill" class="storage-bar-fill"></div>
+                </div>
+                <div id="storage-label" class="storage-label">Loading...</div>
             </div>
         </div>
     </main>
@@ -649,6 +693,34 @@
                 is2faEnabled = false;
                 twofaToggle.checked = false;
                 setBusy(false);
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+            if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+            return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+        }
+
+        async function fetchStorageInfo() {
+            try {
+                const response = await fetch("/api/user/storage", {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                const used = data.storageUsed || 0;
+                const limit = data.storageLimit || 1;
+                const percent = Math.min(100, (used / limit) * 100);
+                const fill = document.getElementById("storage-bar-fill");
+                const label = document.getElementById("storage-label");
+                fill.style.width = percent.toFixed(1) + "%";
+                fill.classList.remove("warning", "danger");
+                if (percent >= 90) fill.classList.add("danger");
+                else if (percent >= 75) fill.classList.add("warning");
+                label.textContent = formatBytes(used) + " of " + formatBytes(limit) + " used";
+            } catch (e) {
+                document.getElementById("storage-label").textContent = "Unable to load storage info.";
             }
         }
 
@@ -837,8 +909,8 @@
         });
 
         fetch2faStatus();
+        fetchStorageInfo();
     })();
 </script>
 </body>
 </html>
-

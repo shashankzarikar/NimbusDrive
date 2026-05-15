@@ -3,6 +3,8 @@ package com.nimbusdrive.controller;
 import com.nimbusdrive.model.User;
 import com.nimbusdrive.repository.UserRepository;
 import com.nimbusdrive.service.TwoFactorService;
+import com.nimbusdrive.service.UserService;
+import com.nimbusdrive.dto.StorageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ public class UserSettingsController {
     private final TwoFactorService twoFactorService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     @GetMapping("/2fa/status")
     public ResponseEntity<Map<String, Object>> get2faStatus() {
@@ -94,5 +97,11 @@ public class UserSettingsController {
                 "success", true,
                 "message", "Two-factor authentication disabled"
         ));
+    }
+
+    @GetMapping("/storage")
+    public ResponseEntity<StorageResponse> getStorageInfo() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(userService.getStorageInfo(username));
     }
 }

@@ -61,6 +61,12 @@ public class FileService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
+        if (user.getStorageUsed() + file.getSize() > user.getStorageLimit()) {
+            long remaining = user.getStorageLimit() - user.getStorageUsed();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Storage quota exceeded. You have " + (remaining / (1024 * 1024)) + " MB remaining.");
+        }
+
         String s3Key = s3Service.uploadFile(username, file);
 
         FileEntity fileEntity = new FileEntity();
@@ -71,7 +77,10 @@ public class FileService {
         fileEntity.setUploadedBy(user);
         fileEntity.setUploadedAt(LocalDateTime.now());
 
-        return toFileResponse(fileRepository.save(fileEntity));
+        fileRepository.save(fileEntity);
+        user.setStorageUsed(user.getStorageUsed() + file.getSize());
+        userRepository.save(user);
+        return toFileResponse(fileEntity);
     }
 
     public FilePageResponse getUserFiles(String username, int page, int size) {
@@ -118,9 +127,11 @@ public class FileService {
 
     public void deleteFile(Long fileId, String username) {
         FileEntity fileEntity = getFileEntity(fileId, username);
-
         s3Service.deleteFile(fileEntity.getS3Key());
         fileRepository.delete(fileEntity);
+        User user = fileEntity.getUploadedBy();
+        user.setStorageUsed(Math.max(0, user.getStorageUsed() - fileEntity.getFileSize()));
+        userRepository.save(user);
     }
 
     private FileResponse toFileResponse(FileEntity fileEntity) {
@@ -135,4 +146,3 @@ public class FileService {
                 .build();
     }
 }
-

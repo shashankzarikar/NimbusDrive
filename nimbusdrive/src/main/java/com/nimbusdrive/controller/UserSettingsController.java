@@ -1,10 +1,13 @@
 package com.nimbusdrive.controller;
 
+import com.nimbusdrive.dto.ApiResponse;
+import com.nimbusdrive.dto.ChangePasswordRequest;
 import com.nimbusdrive.model.User;
 import com.nimbusdrive.repository.UserRepository;
 import com.nimbusdrive.service.TwoFactorService;
 import com.nimbusdrive.service.UserService;
 import com.nimbusdrive.dto.StorageResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -103,5 +106,12 @@ public class UserSettingsController {
     public ResponseEntity<StorageResponse> getStorageInfo() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(userService.getStorageInfo(username));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        userService.changePassword(username, request);
+        return ResponseEntity.ok(new ApiResponse(true, "Password changed successfully"));
     }
 }

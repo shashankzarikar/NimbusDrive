@@ -1,10 +1,12 @@
-# Stage 1: Build the application using Maven and Java 23
-FROM maven:3.9.6-eclipse-temurin-23 AS build
+# Stage 1: Build the Spring Boot application using a valid Maven & Java 23 tag
+FROM maven:3.9-eclipse-temurin-23 AS build
+WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Stage 2: Run the compiled application JAR
+# Stage 2: Run the application using a lightweight Java Runtime Environment
 FROM eclipse-temurin:23-jre-alpine
-COPY --from=build /target/NimbusDrive-0.0.1-SNAPSHOT.jar app.jar
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

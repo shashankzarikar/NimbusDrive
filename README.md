@@ -1,14 +1,13 @@
 # NimbusDrive
 
-> A production-grade cloud storage application built from scratch — secure file upload, sharing, two-factor authentication, and storage quota enforcement, deployed live on Railway.app.
+> A production-grade cloud storage application built from scratch — secure file upload, sharing, two-factor authentication, and storage quota enforcement, deployed live on render with Aivon.io for database.
 
 ![Java](https://img.shields.io/badge/Java-23-orange?style=flat-square)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.3-brightgreen?style=flat-square)
 ![AWS S3](https://img.shields.io/badge/AWS-S3-yellow?style=flat-square)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?style=flat-square)
-![Deployed](https://img.shields.io/badge/Deployed-Railway.app-blueviolet?style=flat-square)
 
-**Live demo:** `[your Railway URL here]` &nbsp;|&nbsp; **GitHub:** [github.com/shashankzarikar/NimbusDrive](https://github.com/shashankzarikar/NimbusDrive)
+**Live demo:** [nimbusdrive.com](https://nimbusdrive-5377.onrender.com/login.html) &nbsp;|&nbsp; **GitHub:** [github.com/shashankzarikar/NimbusDrive](https://github.com/shashankzarikar/NimbusDrive)
 
 ---
 
@@ -25,7 +24,7 @@
 - **File restrictions** — MIME type whitelist, 10 MB size limit, both enforced before S3 call
 - **Global exception handler** — every error returns `{ success: false, message: "..." }`
 - **Multi-user isolation** — verified with Postman; users cannot access each other's files even with a valid token
-- **Deployed live** — 
+- **Deployed live** — Deployed on render with environment variables configured and MySql configuration with Aivon.io cloud, accessible globally at `https://nimbusdrive-5377.onrender.com/login.html`
 
 ---
 
@@ -125,21 +124,21 @@ Two-Factor Authentication toggle, password change, and a live storage quota bar 
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Language | Java 23 |
-| Framework | Spring Boot 4.0.3 |
+| Layer | Technology                  |
+|---|-----------------------------|
+| Language | Java 23                     |
+| Framework | Spring Boot 4.0.3           |
 | Security | Spring Security 7.0.3 + jjwt 0.12.3 |
-| Validation | Jakarta Bean Validation |
-| Database | MySQL 8.0 (Railway cloud in production) |
-| ORM | Hibernate 7.2.4 / JPA |
+| Validation | Jakarta Bean Validation     |
+| Database | MySQL 8.0 (Aivon.io cloud for production) |
+| ORM | Hibernate 7.2.4 / JPA       |
 | Cloud Storage | AWS S3 — ap-south-1 (Mumbai) |
 | AWS SDK | software.amazon.awssdk 2.25.6 |
-| Password Hashing | BCrypt |
-| Build Tool | Maven |
-| Frontend | HTML + CSS + Vanilla JS |
+| Password Hashing | BCrypt                      |
+| Build Tool | Maven                       |
+| Frontend | HTML + CSS + Vanilla JS     |
 | Email | Spring Boot Mail + Gmail SMTP |
-| Deployment | Railway.app |
+| Deployment | Render                      |
 
 ---
 
@@ -371,7 +370,7 @@ mvn spring-boot:run
 
 ---
 
-## Roadmap
+## Future Roadmap
 
 - [ ] Zero Knowledge Encryption — AES-256-GCM, client-side key derivation (PBKDF2), Web Crypto API
 - [ ] Multi-file upload
@@ -381,5 +380,3 @@ mvn spring-boot:run
 - [ ] S3 presigned URLs — direct client-to-S3 upload
 
 ---
-
-*Built by Shashank Zarikar — 6th Semester, Computer Science | Target: Zoho Nagpur Internship 2026*

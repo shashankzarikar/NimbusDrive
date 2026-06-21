@@ -7,12 +7,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
         :root {
-            /* Color palette (60-30-10) */
-            --color-bg: #f8fafc;          /* dominant 60% */
-            --color-navy: #1a2b4a;        /* secondary 30% */
-            --color-accent: #2563eb;      /* accent 10% */
+            /* Color palette — matches login.html / register.html / dashboard.html */
+            --color-bg: #f8fafc;
+            --color-navy: #0d1526;
+            --color-accent: #4f46e5;
+            --color-accent-hover: #4338ca;
 
-            /* Supporting colors (match dashboard.html) */
             --color-border: #d4dbe7;
             --color-text-muted: #64748b;
             --color-error-bg: #fee2e2;
@@ -49,7 +49,7 @@
             flex-direction: column;
         }
 
-        /* Navbar (match dashboard.html) */
+        /* Navbar (matches dashboard.html) */
         .navbar {
             background-color: var(--color-navy);
             color: #e5edff;
@@ -124,8 +124,8 @@
         }
 
         .navbar-link.active {
-            border-color: rgba(37, 99, 235, 0.65);
-            background-color: rgba(37, 99, 235, 0.18);
+            border-color: rgba(99, 102, 241, 0.65);
+            background-color: rgba(99, 102, 241, 0.18);
         }
 
         .navbar-logout-btn {
@@ -138,18 +138,18 @@
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.35);
         }
 
         .navbar-logout-btn:hover {
-            background-color: #1d4ed8;
+            background-color: var(--color-accent-hover);
             transform: translateY(-1px);
-            box-shadow: 0 10px 22px rgba(30, 64, 175, 0.5);
+            box-shadow: 0 10px 22px rgba(67, 56, 202, 0.45);
         }
 
         .navbar-logout-btn:active {
             transform: translateY(0);
-            box-shadow: 0 6px 14px rgba(30, 64, 175, 0.5);
+            box-shadow: 0 6px 14px rgba(67, 56, 202, 0.45);
         }
 
         /* Main content */
@@ -197,7 +197,7 @@
             width: 40px;
             height: 40px;
             border-radius: 14px;
-            background: #eff6ff;
+            background: #eef2ff;
             color: var(--color-accent);
             display: flex;
             align-items: center;
@@ -271,7 +271,7 @@
 
         input:checked + .slider {
             background-color: var(--color-accent);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
         }
 
         input:checked + .slider:before {
@@ -318,17 +318,26 @@
             width: 100%;
             padding: 10px 12px;
             border-radius: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.35);
+            border: 1.5px solid #e2e8f0;
             font-family: inherit;
             font-size: 0.95rem;
+            color: var(--color-navy);
             outline: none;
-            background: #ffffff;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: #f9fafb;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .field-group input:-webkit-autofill,
+        .field-group input:-webkit-autofill:hover,
+        .field-group input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0px 1000px #f9fafb inset !important;
+            -webkit-text-fill-color: var(--color-navy) !important;
         }
 
         .field-group input:focus {
             border-color: var(--color-accent);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
         }
 
         .otp-input {
@@ -365,14 +374,14 @@
 
         .action-btn-primary {
             background-color: var(--color-accent);
-            color: #f9fafb;
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
+            color: #ffffff;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
         }
 
         .action-btn-primary:hover {
-            background-color: #1d4ed8;
+            background-color: var(--color-accent-hover);
             transform: translateY(-1px);
-            box-shadow: 0 14px 24px rgba(30, 64, 175, 0.45);
+            box-shadow: 0 14px 24px rgba(67, 56, 202, 0.4);
         }
 
         .action-btn-secondary {
@@ -520,15 +529,63 @@
             margin-bottom: 0;
         }
 
+        /* ===================================================== */
+        /* ===== MOBILE RESPONSIVE FIXES (768px and below) ===== */
+        /* Same navbar wrap pattern applied to dashboard.html    */
+        /* ===================================================== */
+
         @media (max-width: 768px) {
             .navbar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
+                flex-wrap: wrap;
+                align-items: center;
+                padding: 10px 14px;
+                row-gap: 8px;
+            }
+
+            .navbar-right {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 8px;
+                font-size: 0.78rem;
+            }
+
+            .navbar-username {
+                padding: 3px 8px;
+                font-size: 0.75rem;
+            }
+
+            .navbar-link {
+                padding: 5px 10px;
+                font-size: 0.75rem;
             }
 
             .content {
-                padding: 20px 12px 24px;
+                padding: 16px 12px 24px;
+            }
+
+            .settings-card {
+                padding: 18px 16px 16px;
+                border-radius: 14px;
+            }
+
+            .settings-title {
+                font-size: 1.25rem;
+            }
+
+            .twofa-row,
+            .password-row {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .navbar-title {
+                font-size: 0.85rem;
+            }
+
+            .otp-input {
+                font-size: 1.6rem;
+                letter-spacing: 0.18em;
             }
         }
     </style>

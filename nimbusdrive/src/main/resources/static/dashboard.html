@@ -10,8 +10,9 @@
         :root {
             /* Color palette (60-30-10) */
             --color-bg: #f8fafc;          /* dominant 60% */
-            --color-navy: #1a2b4a;        /* secondary 30% */
-            --color-accent: #2563eb;      /* accent 10% */
+            --color-navy: #0d1526;        /* secondary 30% — matches login/register */
+            --color-accent: #4f46e5;      /* accent 10% — matches login/register */
+            --color-accent-hover: #4338ca;
 
             /* Supporting colors */
             --color-border: #d4dbe7;
@@ -116,18 +117,18 @@
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.35);
         }
 
         .navbar-logout-btn:hover {
-            background-color: #1d4ed8;
+            background-color: #4338ca;
             transform: translateY(-1px);
-            box-shadow: 0 10px 22px rgba(30, 64, 175, 0.5);
+            box-shadow: 0 10px 22px rgba(67, 56, 202, 0.45);
         }
 
         .navbar-logout-btn:active {
             transform: translateY(0);
-            box-shadow: 0 6px 14px rgba(30, 64, 175, 0.5);
+            box-shadow: 0 6px 14px rgba(67, 56, 202, 0.45);
         }
 
         .navbar-shared-btn {
@@ -193,19 +194,19 @@
             text-transform: uppercase;
             background-color: var(--color-accent);
             color: #f9fafb;
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.45);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
             transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
 
         .upload-link-btn:hover {
-            background-color: #1d4ed8;
+            background-color: #4338ca;
             transform: translateY(-1px);
-            box-shadow: 0 14px 24px rgba(30, 64, 175, 0.55);
+            box-shadow: 0 14px 24px rgba(67, 56, 202, 0.5);
         }
 
         .upload-link-btn:active {
             transform: translateY(0);
-            box-shadow: 0 8px 18px rgba(30, 64, 175, 0.5);
+            box-shadow: 0 8px 18px rgba(67, 56, 202, 0.45);
         }
 
         /* Messages and loading */
@@ -245,7 +246,7 @@
         .files-grid {
             margin-top: 8px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 14px;
         }
 
@@ -303,6 +304,7 @@
             flex-direction: column;
             justify-content: space-between;
             gap: 4px;
+            min-width: 0;
         }
 
         .file-title-row {
@@ -346,18 +348,18 @@
         .btn-download {
             background-color: var(--color-accent);
             color: #f9fafb;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.35);
         }
 
         .btn-download:hover {
-            background-color: #1d4ed8;
+            background-color: #4338ca;
             transform: translateY(-1px);
-            box-shadow: 0 10px 22px rgba(30, 64, 175, 0.5);
+            box-shadow: 0 10px 22px rgba(67, 56, 202, 0.45);
         }
 
         .btn-download:active {
             transform: translateY(0);
-            box-shadow: 0 6px 14px rgba(30, 64, 175, 0.5);
+            box-shadow: 0 6px 14px rgba(67, 56, 202, 0.45);
         }
 
         .btn-delete {
@@ -525,6 +527,8 @@
             transition: opacity 0.3s ease;
             pointer-events: none;
             z-index: 9999;
+            max-width: calc(100vw - 32px);
+            text-align: center;
         }
 
         .toast.visible {
@@ -540,6 +544,7 @@
             display: none;
             align-items: center;
             justify-content: center;
+            padding: 16px;
         }
 
         .share-modal-card {
@@ -603,13 +608,13 @@
         .modal-btn-accent {
             background-color: var(--color-accent);
             color: #f9fafb;
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
         }
 
         .modal-btn-accent:hover {
-            background-color: #1d4ed8;
+            background-color: #4338ca;
             transform: translateY(-1px);
-            box-shadow: 0 14px 24px rgba(30, 64, 175, 0.45);
+            box-shadow: 0 14px 24px rgba(67, 56, 202, 0.4);
         }
 
         .modal-btn-secondary {
@@ -656,15 +661,101 @@
             }
         }
 
+        /* ===================================================== */
+        /* ===== MOBILE RESPONSIVE FIXES (768px and below) ===== */
+        /* ===================================================== */
+
         @media (max-width: 768px) {
+            /* Fix 1 — Navbar: stack into rows, prevent horizontal overflow.
+               Top row = logo + Logout (always reachable).
+               Second row = username pill + Shared Files + Settings, wraps freely. */
             .navbar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
+                flex-wrap: wrap;
+                align-items: center;
+                padding: 10px 14px;
+                row-gap: 8px;
             }
 
+            .navbar-right {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 8px;
+                font-size: 0.78rem;
+                order: 3;
+            }
+
+            .navbar-username {
+                padding: 3px 8px;
+                font-size: 0.75rem;
+            }
+
+            .navbar-shared-btn,
+            .navbar-link {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
+
+            /* Fix 2 — Content header: stack title above full-width upload button */
             .content {
-                padding: 20px 12px 24px;
+                padding: 16px 12px 24px;
+            }
+
+            .content-header {
+                align-items: flex-start;
+            }
+
+            .content-title {
+                font-size: 1.4rem;
+            }
+
+            .content-actions {
+                width: 100%;
+            }
+
+            .upload-link-btn {
+                width: 100%;
+                padding: 10px 16px;
+            }
+
+            /* Fix 3 — File cards: single column, tighter padding for small screens */
+            .files-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .file-card {
+                padding: 10px 10px 9px;
+            }
+
+            .file-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 0.72rem;
+            }
+
+            .file-name {
+                font-size: 0.88rem;
+            }
+
+            /* Fix 5 — Dropdown: never exceed viewport width on narrow screens */
+            .dropdown-menu {
+                min-width: 150px;
+                max-width: calc(100vw - 24px);
+            }
+        }
+
+        @media (max-width: 420px) {
+            /* Fix 4 — Share modal: tighter padding on very small phones */
+            .share-modal-card {
+                padding: 20px;
+            }
+
+            .share-modal-card h2 {
+                font-size: 1rem;
+            }
+
+            .navbar-title {
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -809,7 +900,7 @@
 
         let activeShareFileId = null;
 
-        const pageSize = 9;
+        const pageSize = 12;
         let currentPage = 0;
 
         navbarUsernameEl.textContent = username || "User";
@@ -943,18 +1034,33 @@
             }
 
             dropdownEl.classList.add("visible");
-            dropdownEl.style.left = (event ? event.clientX : 0) + "px";
-            dropdownEl.style.top = (event ? event.clientY : 0) + "px";
+
+            // Use clientX/clientY as the anchor point (works for both mouse clicks and touch taps)
+            const anchorX = event ? event.clientX : 0;
+            const anchorY = event ? event.clientY : 0;
+
+            dropdownEl.style.left = anchorX + "px";
+            dropdownEl.style.top = anchorY + "px";
 
             const rect = dropdownEl.getBoundingClientRect();
             let left = rect.left;
             let top = rect.top;
 
+            // Fix 5 — boundary correction now also accounts for the left edge
+            // and clamps within the viewport on narrow mobile screens.
+            const margin = 8;
+
             if (rect.right > window.innerWidth) {
-                left = Math.max(8, left - rect.width);
+                left = window.innerWidth - rect.width - margin;
+            }
+            if (left < margin) {
+                left = margin;
             }
             if (rect.bottom > window.innerHeight) {
-                top = Math.max(8, top - rect.height);
+                top = window.innerHeight - rect.height - margin;
+            }
+            if (top < margin) {
+                top = margin;
             }
 
             dropdownEl.style.left = left + "px";

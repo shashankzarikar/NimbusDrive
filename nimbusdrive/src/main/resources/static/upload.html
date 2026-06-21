@@ -8,19 +8,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
         :root {
-            /* Color palette (60-30-10) */
-            --color-bg: #f8fafc;          /* dominant 60% */
-            --color-navy: #1a2b4a;        /* secondary 30% */
-            --color-accent: #2563eb;      /* accent 10% */
+            /* Color palette — matches login.html / register.html / dashboard.html / settings.html */
+            --color-bg: #f8fafc;
+            --color-navy: #0d1526;
+            --color-accent: #4f46e5;
+            --color-accent-hover: #4338ca;
 
-            /* Supporting colors */
             --color-border: #d4dbe7;
             --color-text-muted: #64748b;
             --color-error-bg: #fee2e2;
             --color-error-text: #b91c1c;
             --color-success-bg: #dcfce7;
             --color-success-text: #166534;
-            --color-navbar-bg: #0f172a;
         }
 
         * {
@@ -51,9 +50,9 @@
             flex-direction: column;
         }
 
-        /* Navbar */
+        /* Navbar — matches dashboard.html / settings.html exactly */
         .navbar {
-            background: linear-gradient(90deg, #0f172a, #111827);
+            background-color: var(--color-navy);
             color: #e5edff;
             padding: 10px 24px;
             display: flex;
@@ -107,28 +106,46 @@
             color: #e5edff;
         }
 
+        .navbar-link {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,0.4);
+            color: #e5edff;
+            background: transparent;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .navbar-link:hover {
+            background-color: rgba(248, 250, 252, 0.08);
+        }
+
         .navbar-logout-btn {
             padding: 6px 12px;
             border-radius: 999px;
-            border: 1px solid rgba(248, 250, 252, 0.7);
-            background-color: transparent;
-            color: #e5edff;
+            border: none;
+            background-color: var(--color-accent);
+            color: #f9fafb;
             font-size: 0.8rem;
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.35);
         }
 
         .navbar-logout-btn:hover {
-            background-color: #f9fafb;
-            color: #0f172a;
+            background-color: var(--color-accent-hover);
             transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.35);
+            box-shadow: 0 10px 22px rgba(67, 56, 202, 0.45);
         }
 
         .navbar-logout-btn:active {
             transform: translateY(0);
-            box-shadow: 0 3px 8px rgba(15, 23, 42, 0.3);
+            box-shadow: 0 6px 14px rgba(67, 56, 202, 0.45);
         }
 
         /* Main content */
@@ -189,7 +206,7 @@
         .upload-zone.hover {
             background-color: #eef2ff;
             border-color: var(--color-accent);
-            box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35), 0 10px 22px rgba(15, 23, 42, 0.1);
+            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35), 0 10px 22px rgba(15, 23, 42, 0.1);
             transform: translateY(-1px);
         }
 
@@ -197,7 +214,7 @@
             width: 40px;
             height: 40px;
             border-radius: 999px;
-            background-color: rgba(37, 99, 235, 0.08);
+            background-color: rgba(99, 102, 241, 0.1);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -236,17 +253,17 @@
 
         .upload-button {
             width: 100%;
-            padding: 10px 14px;
+            padding: 11px 14px;
             border-radius: 999px;
             border: none;
-            font-size: 0.95rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            background-color: var(--color-accent);
+            background-color: #4f46e5;
             color: #ffffff;
             cursor: pointer;
-            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -255,14 +272,14 @@
         }
 
         .upload-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 32px rgba(30, 64, 175, 0.45);
-            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.42);
+            background-color: var(--color-accent-hover);
         }
 
         .upload-button:active:not(:disabled) {
             transform: translateY(0);
-            box-shadow: 0 10px 18px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
         }
 
         .upload-button:disabled {
@@ -275,21 +292,36 @@
             width: 14px;
             height: 14px;
             border-radius: 999px;
-            border: 2px solid rgba(239, 246, 255, 0.6);
-            border-top-color: #eff6ff;
-            border-right-color: #eff6ff;
-            border-bottom-color: rgba(191, 219, 254, 0.4);
-            border-left-color: rgba(191, 219, 254, 0.1);
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: #ffffff;
             animation: spin 0.65s linear infinite;
+            flex-shrink: 0;
         }
 
         .upload-message {
             margin-top: 14px;
-            padding: 8px 10px;
+            padding: 10px 12px;
             border-radius: 10px;
-            font-size: 0.8rem;
+            font-size: 0.84rem;
+            font-weight: 500;
             border: 1px solid transparent;
             display: none;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .upload-message-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .upload-message-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .upload-message.error {
@@ -305,7 +337,9 @@
         }
 
         .upload-message.visible {
-            display: block;
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .upload-back {
@@ -324,7 +358,7 @@
         .upload-back a:hover {
             text-decoration: underline;
             text-decoration-color: var(--color-accent);
-            color: #1d4ed8;
+            color: var(--color-accent-hover);
         }
 
         @keyframes spin {
@@ -333,15 +367,57 @@
             }
         }
 
+        /* ===================================================== */
+        /* ===== MOBILE RESPONSIVE FIXES (768px and below) ===== */
+        /* Same navbar wrap pattern applied to dashboard/settings */
+        /* ===================================================== */
+
         @media (max-width: 768px) {
             .navbar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
+                flex-wrap: wrap;
+                align-items: center;
+                padding: 10px 14px;
+                row-gap: 8px;
+            }
+
+            .navbar-right {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 8px;
+                font-size: 0.78rem;
+            }
+
+            .navbar-username {
+                padding: 3px 8px;
+                font-size: 0.75rem;
+            }
+
+            .navbar-link {
+                padding: 5px 10px;
+                font-size: 0.75rem;
             }
 
             .content {
-                padding: 24px 12px 32px;
+                padding: 20px 12px 28px;
+            }
+
+            .upload-card {
+                padding: 20px 18px 18px;
+                border-radius: 16px;
+            }
+
+            .upload-heading {
+                font-size: 1.25rem;
+            }
+
+            .upload-zone {
+                padding: 20px 12px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .navbar-title {
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -360,6 +436,9 @@
         </div>
         <div class="navbar-right">
             <div id="navbar-username" class="navbar-username"></div>
+            <a href="dashboard.html" class="navbar-link">Dashboard</a>
+            <a href="shared.html" class="navbar-link">Shared Files</a>
+            <a href="settings.html" class="navbar-link">Settings</a>
             <button id="logout-btn" class="navbar-logout-btn" type="button">Logout</button>
         </div>
     </header>
@@ -369,7 +448,7 @@
             <section class="upload-card" aria-label="File upload">
                 <div class="upload-header">
                     <h1 class="upload-heading">Upload a File</h1>
-                    <p class="upload-subheading">Your file will be stored securely on AWS S3.</p>
+                    <p class="upload-subheading">Choose a file to add to your storage.</p>
                 </div>
 
                 <div id="upload-zone" class="upload-zone">
@@ -388,12 +467,15 @@
                 <input id="file-input" type="file" style="display: none;" />
 
                 <div class="upload-actions">
-                    <button id="upload-button" class="upload-button" type="button" disabled>
+                    <button id="upload-button" class="upload-button" type="button" disabled style="background-color:#4f46e5;color:#ffffff;">
                         <span id="upload-button-text">Upload File</span>
                     </button>
                 </div>
 
-                <div id="upload-message" class="upload-message" role="alert"></div>
+                <div id="upload-message" class="upload-message" role="alert">
+                    <span id="upload-message-icon" class="upload-message-icon"></span>
+                    <span id="upload-message-text"></span>
+                </div>
 
                 <div class="upload-back">
                     <a href="dashboard.html">&larr; Back to Dashboard</a>
@@ -446,18 +528,27 @@
             return mb.toFixed(1) + " MB";
         }
 
+        const uploadMessageIcon = document.getElementById("upload-message-icon");
+        const uploadMessageText = document.getElementById("upload-message-text");
+
+        const checkIconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        const errorIconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+
         function showMessage(message, type) {
-            uploadMessage.textContent = message;
+            uploadMessageText.textContent = message;
             uploadMessage.classList.remove("error", "success", "visible");
             if (type === "error") {
                 uploadMessage.classList.add("error", "visible");
+                uploadMessageIcon.innerHTML = errorIconSvg;
             } else if (type === "success") {
                 uploadMessage.classList.add("success", "visible");
+                uploadMessageIcon.innerHTML = checkIconSvg;
             }
         }
 
         function clearMessage() {
-            uploadMessage.textContent = "";
+            uploadMessageText.textContent = "";
+            uploadMessageIcon.innerHTML = "";
             uploadMessage.classList.remove("error", "success", "visible");
         }
 
@@ -578,7 +669,9 @@
                 const result = await response.json();
 
                 const fileName = result && result.fileName ? result.fileName : (selectedFile && selectedFile.name);
-                showMessage("File '" + fileName + "' uploaded successfully.", "success");
+                const fileSizeText = selectedFile ? formatFileSize(selectedFile.size) : "";
+                const sizeSuffix = fileSizeText ? " (" + fileSizeText + ")" : "";
+                showMessage(fileName + sizeSuffix + " uploaded. Taking you to your files...", "success");
 
                 setTimeout(function () {
                     window.location.href = "dashboard.html";

@@ -84,7 +84,13 @@ public class AuthService {
     }
 
     public LoginResponse verifyOtpAndLogin(String username, String otpCode) {
-        User user = userRepository.findByUsername(username).orElse(null);
+        // username parameter can be either the username or the email (frontend stores the
+        // original login identifier in localStorage). Mirror the same lookup used by login().
+        String id = username == null ? null : username.trim();
+        User user = userRepository
+                .findByUsername(id)
+                .orElseGet(() -> userRepository.findByEmail(id).orElse(null));
+
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials!");
         }

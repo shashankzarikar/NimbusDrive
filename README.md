@@ -1,6 +1,6 @@
 # NimbusDrive
 
-> A production-grade cloud storage application built from scratch — secure file upload, sharing, two-factor authentication, and storage quota enforcement, deployed live on render with Aivon.io for database.
+> A production-grade cloud storage application built from scratch — secure file upload, sharing, two-factor authentication, and storage quota enforcement, deployed live on Render with Aivon.io for database.
 
 ![Java](https://img.shields.io/badge/Java-23-orange?style=flat-square)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.3-brightgreen?style=flat-square)
@@ -13,18 +13,48 @@
 
 ## Features
 
-- **JWT authentication** — stateless, BCrypt password hashing, username or email login
-- **File operations** — upload, download, inline preview, delete with full ownership enforcement
-- **File sharing** — unique UUID share tokens, optional expiry (1h / 24h / 7d / 30d / never), revocable at any time, public viewer page requires no account
-- **Two-Factor Authentication** — email OTP via Gmail SMTP, 10-minute expiry, per-user toggle, cryptographically secure via `SecureRandom`
-- **Storage quota** — 1 GB per user, hard block before S3 call, progress bar with amber / red thresholds
-- **Change password** — confirmed via current password before update
-- **Pagination** — all file list responses paginated, never unbounded
-- **Input validation** — `@NotBlank`, `@Email`, `@Size` on all request DTOs
-- **File restrictions** — MIME type whitelist, 10 MB size limit, both enforced before S3 call
-- **Global exception handler** — every error returns `{ success: false, message: "..." }`
-- **Multi-user isolation** — verified with Postman; users cannot access each other's files even with a valid token
-- **Deployed live** — Deployed on render with environment variables configured and MySql configuration with Aivon.io cloud, accessible globally at `https://nimbusdrive-5377.onrender.com/login.html`
+### JWT Authentication
+Stateless authentication using JWT — no server-side sessions. Login accepts either username or email. Passwords are hashed with BCrypt on registration and compared on login using `BCryptPasswordEncoder.matches()` — the original password is never stored or recoverable even if the database is compromised. All login failures return the same generic `"Invalid credentials!"` message regardless of whether the username or password was wrong — prevents username enumeration attacks where an attacker probes which accounts exist.
+
+### File Operations
+Users can upload, download, inline preview, and delete files. Files are stored on AWS S3 with metadata (filename, MIME type, size, owner, upload time) in MySQL. Upload enforces a MIME type whitelist and a 10 MB size limit — both checked before the S3 call so a rejected upload never reaches AWS. S3 delete runs before DB delete — if the DB operation fails after S3 succeeds, the file record still exists and the operation can be retried. The worse outcome in the other order (orphaned S3 bytes with no DB record) is unrecoverable.
+
+Inline preview opens PDFs, images, and plain text directly in the browser tab without downloading. `window.open()` cannot be used for this because it is a plain browser navigation request that cannot carry the `Authorization: Bearer` header — the server returns 401. The solution is to `fetch()` the bytes with the JWT header, create a temporary Blob URL via `window.URL.createObjectURL()`, then open that. The Blob URL is revoked after 10 seconds to prevent memory leaks.
+
+Two separate endpoints exist for preview and download — `GET /api/files/preview/{id}` returns `Content-Disposition: inline`, `GET /api/files/download/{id}` returns `Content-Disposition: attachment`. They cannot be merged into one because the Download button must always force a file save to disk.
+
+### File Sharing
+Any file can be shared via a unique UUID token — no NimbusDrive account required to view. The actual S3 key is never exposed to the viewer. Share links support optional expiry (1h / 24h / 7d / 30d / never) stored as an absolute timestamp — every validation is a single `expiresAt.isBefore(LocalDateTime.now())` comparison. Links can be revoked instantly by the owner at any time.
+
+Revocation sets `is_active = false` rather than deleting the row — the link dies immediately but the record stays for history. One active link per file is enforced in the service layer: `findByFileAndIsActiveTrue()` is called before creation and returns 409 CONFLICT if an active link already exists. A database UNIQUE constraint cannot be used here because revoked rows must coexist with the same `file_id`.
+
+Expired and revoked links return HTTP 410 Gone — not 403 Forbidden. 403 implies the viewer could gain access with different credentials. 410 means the resource is permanently gone and no action will change that.
+
+### Two-Factor Authentication
+After password login, users with 2FA enabled receive a 6-digit OTP via email. The OTP is generated using Java's `SecureRandom` — seeded from OS-level entropy, cryptographically unpredictable. `Math.random()` uses a predictable pseudorandom algorithm and is never appropriate for security-sensitive values. `SecureRandom` is declared `private static final` at class level — one instance for the entire application lifetime, not re-instantiated on every OTP request.
+
+The OTP is stored in the database with a 10-minute expiry (absolute timestamp) and an `isUsed` flag. On verification, three conditions must pass: the code exists, `isUsed` is false, and the current time is before `expiresAt`. After successful verification, `isUsed` is set to true — the row is kept for audit trail, not deleted. `@Transactional` is required on `generateAndSendOtp()` because Spring Data JPA's derived delete methods require an active transaction to execute — without it, the second OTP request fails with a JPA error.
+
+The OTP modal appears inline on the login page — no separate `/verify-otp.html` page. A separate page would require passing the username across navigation via localStorage or a URL parameter, both fragile. The inline modal keeps the username in memory on the same page with no full reload.
+
+Per-user on/off toggle in Settings with a two-step enable flow — password confirmation first, then OTP verification before 2FA is activated.
+
+### Storage Quota
+Every user has a 1 GB storage limit tracked in `storage_used` and `storage_limit` columns on the users table. On every upload, the quota check runs before the S3 call — a rejected upload never reaches AWS and incurs no bandwidth cost. After a successful upload, `storageUsed` is incremented. On delete, it is decremented using `Math.max(0, storageUsed - fileSize)` — floors at zero to handle files uploaded before quota tracking was introduced, preventing a negative `storageUsed` value.
+
+The Settings page shows a live progress bar: blue for normal usage, amber above 75%, red above 90%.
+
+### Change Password
+Password change requires the current password to be confirmed before the new one is accepted — prevents silent account takeover if someone accesses an unlocked screen.
+
+### Pagination
+All file list responses are paginated via Spring Data's `Pageable`. `GET /api/files` accepts `?page=0&size=10` query parameters. The repository automatically applies `LIMIT` and `OFFSET` to the SQL query. The response includes `currentPage`, `totalPages`, and `totalFiles` metadata. The dashboard shows Previous/Next navigation with disabled states at boundaries.
+
+### Input Validation & Error Handling
+All request DTOs use Jakarta Bean Validation — `@NotBlank`, `@Email`, `@Size` on every field. Validation errors are caught by `GlobalExceptionHandler` (`@RestControllerAdvice`) before reaching any service layer. Every error across the entire application — validation failures, ownership violations, expired share links, quota exceeded — returns the same consistent format: `{ "success": false, "message": "..." }`. No stack traces are ever returned to the client.
+
+### Multi-User Isolation
+Every file operation — download, preview, delete, share — calls `FileService.getFileEntity()` which checks that the logged-in username matches the file's `uploadedBy` field. A valid JWT from another user cannot access your files — returns 403 FORBIDDEN. Verified with Postman across multiple accounts.
 
 ---
 
@@ -98,7 +128,7 @@ Two-Factor Authentication toggle, password change, and a live storage quota bar 
 │          ▼                   ▼                              │
 │  UserRepository      FileRepository   FileShareRepository   │
 │  OtpTokenRepository                                         │
-└──────┬───────────────────────┬────────────────────────────-─┘
+└──────┬───────────────────────┬─────────────────────────────┘
        │                       │
        ▼                       ▼
 ┌─────────────┐      ┌──────────────────┐
@@ -124,47 +154,45 @@ Two-Factor Authentication toggle, password change, and a live storage quota bar 
 
 ## Tech Stack
 
-| Layer | Technology                  |
-|---|-----------------------------|
-| Language | Java 23                     |
-| Framework | Spring Boot 4.0.3           |
+| Layer | Technology |
+|---|---|
+| Language | Java 23 |
+| Framework | Spring Boot 4.0.3 |
 | Security | Spring Security 7.0.3 + jjwt 0.12.3 |
-| Validation | Jakarta Bean Validation     |
+| Validation | Jakarta Bean Validation |
 | Database | MySQL 8.0 (Aivon.io cloud for production) |
-| ORM | Hibernate 7.2.4 / JPA       |
+| ORM | Hibernate 7.2.4 / JPA |
 | Cloud Storage | AWS S3 — ap-south-1 (Mumbai) |
 | AWS SDK | software.amazon.awssdk 2.25.6 |
-| Password Hashing | BCrypt                      |
-| Build Tool | Maven                       |
-| Frontend | HTML + CSS + Vanilla JS     |
-| Email | Spring Boot Mail + Gmail SMTP |
-| Deployment | Render                      |
+| Password Hashing | BCrypt |
+| Build Tool | Maven |
+| Frontend | HTML + CSS + Vanilla JS |
+| Email | Brevo HTTP API (POST to api.brevo.com/v3/smtp/email) |
+| Deployment | Render |
 
 ---
 
 ## Security Model
 
 ```
-Layer 1 — Frontend JS
-  └── Checks localStorage for JWT on page load
-  └── Bypassable — this is UX only, not a security guarantee
-
-Layer 2 — Spring Security + JWT Filter  [server-enforced]
+Layer 1 — Spring Security + JWT Filter  [server-enforced]
   └── JwtAuthFilter intercepts every API request
   └── Requests without a valid JWT are rejected at filter level
   └── Runs before any controller code executes
 
-Layer 3 — File Ownership Check  [server-enforced]
+Layer 2 — File Ownership Check  [server-enforced]
   └── FileService.getFileEntity() verifies logged-in username
       matches file.uploadedBy on every download, preview, delete
   └── Returns 403 FORBIDDEN if they do not match
   └── A valid JWT from another user cannot access your files
 ```
 
+> **Note:** The frontend checks `localStorage` for a JWT on page load as a UX convenience — redirecting unauthenticated users to login. This is not a security layer and can be bypassed entirely. All real security is enforced server-side by the two layers above.
+
 **Additional security measures:**
 - BCrypt one-way password hashing — original password unrecoverable even if DB is compromised
-- Generic `"Invalid credentials!"` message for all login failures — prevents username enumeration
-- Zero secrets hardcoded — all sensitive values in OS environment variables with `NIMBUSDRIVE_` prefix
+- Generic `"Invalid credentials!"` for all login failures — prevents username enumeration attacks
+- Zero secrets hardcoded — all credentials in environment variables with `NIMBUSDRIVE_` prefix
 - Dedicated IAM user (`nimbusdrive-s3-user`) with S3 permissions only — principle of least privilege
 - Dedicated MySQL user — not root
 - DTO pattern on all API responses — JPA entities never serialized directly
@@ -300,7 +328,7 @@ com.nimbusdrive
 │   ├── FileService.java             ← Coordinates S3Service + FileRepository
 │   ├── FileShareService.java        ← Share create, revoke, validate, serve
 │   ├── TwoFactorService.java        ← OTP generate, verify, enable, disable
-│   ├── EmailService.java            ← Gmail SMTP — sends OTP emails
+│   ├── EmailService.java            ← Brevo HTTP API — sends OTP emails via HTTP POST
 │   ├── UserService.java             ← Storage info
 │   └── S3Service.java               ← Direct AWS S3 operations
 └── util
@@ -311,6 +339,7 @@ src/main/resources/static/
 ├── register.html    ← User registration
 ├── dashboard.html   ← File list, kebab menu, share modal, pagination
 ├── upload.html      ← Drag & drop file upload
+├── share.html       ← Public share viewer — no login required
 ├── shared.html      ← Active share links — copy and revoke
 └── settings.html    ← 2FA toggle, storage quota bar, change password
 ```
@@ -319,7 +348,7 @@ src/main/resources/static/
 
 ## Running Locally
 
-**Prerequisites:** Java 23, Maven, MySQL 8.0, AWS account with S3 bucket
+**Prerequisites:** Java, Maven, MySQL 8.0, AWS account with S3 bucket, Brevo account
 
 **1. Set environment variables**
 
@@ -332,8 +361,8 @@ NIMBUSDRIVE_AWS_ACCESS_KEY    = your_aws_access_key
 NIMBUSDRIVE_AWS_SECRET_KEY    = your_aws_secret_key
 NIMBUSDRIVE_AWS_BUCKET        = your_s3_bucket_name
 NIMBUSDRIVE_AWS_REGION        = ap-south-1
-NIMBUSDRIVE_MAIL_USERNAME     = your_gmail_address
-NIMBUSDRIVE_MAIL_PASSWORD     = your_gmail_app_password
+NIMBUSDRIVE_MAIL_USERNAME     = your_verified_sender_email
+NIMBUSDRIVE_BREVO_API_KEY     = your_brevo_api_key
 ```
 
 **2. Create the database**
@@ -366,7 +395,7 @@ mvn spring-boot:run
 | No refresh token | JWT expiry not handled gracefully | Access + refresh token pair |
 | `ddl-auto=update` in production | Risky for schema changes | Flyway migrations |
 | No logging | No visibility into system behavior | SLF4J + structured logs |
-| Single file upload only | One file at a time via drag-and-drop or browse | Multi-file upload with progress per file |
+| Single file upload only | One file at a time | Multi-file upload with progress per file |
 
 ---
 
